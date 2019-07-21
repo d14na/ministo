@@ -265,13 +265,13 @@ export default {
             /* Initialize hash update listener. */
             ipc.on('updateNumHashes', (_event, _arg) => {
                 this.numHashes = _arg
-                ipc.send('_debug', `this.numHashes [ ${this.numHashes} ]`)
+                // ipc.send('_debug', `this.numHashes [ ${this.numHashes} ]`)
             })
 
             /* Initialize hash update listener. */
             ipc.on('updateHashRate', (_event, _arg) => {
                 this.hashRate = _arg
-                ipc.send('_debug', `this.hashRate [ ${this.hashRate} ]`)
+                // ipc.send('_debug', `this.hashRate [ ${this.hashRate} ]`)
             })
 
             /* Set an interval to update mining stats. */
