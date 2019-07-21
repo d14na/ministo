@@ -1,6 +1,7 @@
 .DS_Store
 dist/electron/*
 dist/web/*
+bin/*
 build/*
 src/build/Release/*
 !build/icons
