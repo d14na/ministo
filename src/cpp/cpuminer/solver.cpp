@@ -3,6 +3,7 @@
 
 #include <assert.h>
 
+/* Initialize ascii set. */
 static const char* const ascii[] = {
     "00","01","02","03","04","05","06","07","08","09","0a","0b","0c","0d","0e","0f",
     "10","11","12","13","14","15","16","17","18","19","1a","1b","1c","1d","1e","1f",
@@ -22,6 +23,9 @@ static const char* const ascii[] = {
     "f0","f1","f2","f3","f4","f5","f6","f7","f8","f9","fa","fb","fc","fd","fe","ff"
 };
 
+/**
+ * From Ascii
+ */
 static uint8_t fromAscii(uint8_t c) {
     if (c >= '0' && c <= '9')
         return (c - '0');
@@ -37,10 +41,16 @@ static uint8_t fromAscii(uint8_t c) {
     #endif
 }
 
+/**
+ * Ascii (R)
+ */
 static uint8_t ascii_r(uint8_t a, uint8_t b) {
     return fromAscii(a) * 16 + fromAscii(b);
 }
 
+/**
+ * Hex To Bytes
+ */
 static void HexToBytes(std::string const& hex, uint8_t bytes[]) {
     for (std::string::size_type i = 0, j = 0; i < hex.length(); i += 2, ++j) {
         bytes[j] = ascii_r(hex[i], hex[i + 1]);
@@ -52,6 +62,7 @@ static void HexToBytes(std::string const& hex, uint8_t bytes[]) {
 // static
 std::atomic<uint32_t> Solver::hashes(0u); // statistics only
 
+/* Initialize Solver. */
 Solver::Solver() noexcept :
     m_address(ADDRESS_LENGTH),
     m_challenge(UINT256_LENGTH),
@@ -63,20 +74,41 @@ Solver::Solver() noexcept :
     m_target_ready(false)
 { }
 
+/**
+ * Set Address
+ */
 void Solver::setAddress(std::string const& addr) {
+    /* Validate address. */
     assert(addr.length() == (ADDRESS_LENGTH * 2 + 2));
+
+    /* Convert to bytes. */
     hexToBytes(addr, m_address);
+
+    /* Update buffer. */
     updateBuffer();
 }
 
+/**
+ * Set Challenge
+ */
 void Solver::setChallenge(std::string const& chal) {
+    /* Validate challenge. */
     assert(chal.length() == (UINT256_LENGTH * 2 + 2));
+
+    /* Convert to bytes. */
     hexToBytes(chal, m_challenge);
+
+    /* Update buffer. */
     updateBuffer();
 }
 
+/**
+ * Set Target
+ */
 void Solver::setTarget(std::string const& target) {
+    /* Validate target. */
     assert(target.length() <= (UINT256_LENGTH * 2 + 2));
+
     std::string const t(static_cast<std::string::size_type>(UINT256_LENGTH * 2 + 2) - target.length(), '0');
 
     // Double-buffer system, the trySolution() function will be blocked
@@ -89,10 +121,16 @@ void Solver::setTarget(std::string const& target) {
     m_target_ready = true;
 }
 
-// Buffer order: 1-challenge 2-ethAddress 3-solution
+/**
+ * Update Buffer
+ *
+ * NOTE: Buffer order: 1-challenge 2-ethAddress 3-solution.
+ */
 void Solver::updateBuffer() {
-    // The idea is to have a double-buffer system in order not to try
-    //  to acquire a lock on each hash() loop
+    /**
+     * The idea is to have a double-buffer system in order not to try
+     * to acquire a lock on each hash() loop.
+     */
     {
         std::lock_guard<std::mutex> g(m_buffer_mutex);
         std::copy(m_challenge.cbegin(), m_challenge.cend(), m_buffer_tmp.begin());
@@ -102,6 +140,9 @@ void Solver::updateBuffer() {
     m_buffer_ready = true;
 }
 
+/**
+ * Hash
+ */
 void Solver::hash(bytes_t const& solution, bytes_t& digest) {
     if (m_buffer_ready) {
         std::lock_guard<std::mutex> g(m_buffer_mutex);
@@ -110,9 +151,13 @@ void Solver::hash(bytes_t const& solution, bytes_t& digest) {
     }
 
     std::copy(solution.cbegin(), solution.cend(), m_buffer.begin() + m_challenge.size() + m_address.size());
+
     keccak_256(&digest[0], digest.size(), &m_buffer[0], m_buffer.size());
 }
 
+/**
+ * Try Solution
+ */
 bool Solver::trySolution(bytes_t const& solution) {
     bytes_t digest(UINT256_LENGTH);
     hash(solution, digest);
@@ -128,14 +173,18 @@ bool Solver::trySolution(bytes_t const& solution) {
     return lte(digest, m_target);
 }
 
-// static
+/**
+ * (Solver) Hex To Bytes
+ */
 void Solver::hexToBytes(std::string const& hex, bytes_t& bytes) {
     assert(hex.length() % 2 == 0);
     assert(bytes.size() == (hex.length() / 2 - 1));
     HexToBytes(hex.substr(2), &bytes[0]);
 }
 
-// static
+/**
+ * (Solver) Bytes To String
+ */
 std::string Solver::bytesToString(bytes_t const& buffer) {
     std::string output;
     output.reserve(buffer.size() * 2 + 1);
@@ -146,7 +195,9 @@ std::string Solver::bytesToString(bytes_t const& buffer) {
     return output;
 }
 
-// static
+/**
+ * (Solver) Less-Than-Or-Equal
+ */
 bool Solver::lte(bytes_t const& left, bytes_t const& right) {
     assert(left.size() == right.size());
 

@@ -10,18 +10,20 @@
 
 #include "cpuminer.h"
 
-
 namespace miner {
 
     using namespace Nan;
 
     ::CpuMiner* cpuminer = nullptr;
 
-    //call C++ dtors:
+    /* Call C++ dtors: */
     void cleanup(void* p) {
         delete reinterpret_cast<CpuMiner*>(p);
     }
 
+    /**
+     * Miner
+     */
     class Miner : public AsyncWorker {
         public:
             Miner(Callback *callback)
@@ -30,7 +32,7 @@ namespace miner {
 
             ~Miner() {}
 
-            // This function runs in a thread spawned by NAN
+            // NOTE: This function runs in a thread spawned by NAN
             void Execute () {
                 if (cpuminer) {
                     cpuminer->run(); // blocking call
@@ -40,9 +42,11 @@ namespace miner {
             }
 
         private:
-            // Executed when the async work is complete
-            // this function will be run inside the main event loop
-            // so it is safe to use V8 again
+            /**
+             * Executed when the async work is complete
+             * this function will be run inside the main event loop
+             * so it is safe to use V8 again.
+             */
             void HandleOKCallback () {
                 HandleScope scope;
 
@@ -55,9 +59,11 @@ namespace miner {
             }
     };
 
-    // Run an asynchronous function
-    // First and only parameter is a callback function
-    // receiving the solution when found
+    /**
+     * Run an asynchronous function
+     * First and only parameter is a callback function
+     * receiving the solution when found.
+     */
     NAN_METHOD(run) {
         Callback *callback = new Callback(To<v8::Function>(info[0]).ToLocalChecked());
         AsyncQueueWorker(new Miner(callback));
@@ -92,15 +98,17 @@ namespace miner {
         info.GetReturnValue().SetUndefined();
     }
 
-    // Get the number of hashes performed until now
-    // and reset it to 0
+    /**
+     * Get the number of hashes performed until now
+     * and reset it to 0.
+     */
     NAN_METHOD(hashes) {
         uint32_t const value = Solver::hashes;
         Solver::hashes = 0;
         info.GetReturnValue().Set(value);
     }
 
-    // Defines the functions our add-on will export
+    /* Defines the functions our add-on will export. */
     NAN_MODULE_INIT(Init) {
         Set(target
             , New<v8::String>("run").ToLocalChecked()

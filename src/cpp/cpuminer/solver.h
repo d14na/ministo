@@ -6,7 +6,9 @@
 #include <string>
 #include <vector>
 
-
+/**
+ * Solver
+ */
 class Solver {
     public:
         typedef std::vector<uint8_t> bytes_t;
@@ -19,9 +21,7 @@ class Solver {
 
     public:
         void setAddress(std::string const& addr);
-
         void setChallenge(std::string const& chal);
-
         void setTarget(std::string const& target);
 
     public:
@@ -36,7 +36,6 @@ class Solver {
 
     private:
         void updateBuffer();
-
         void hash(bytes_t const& solution, bytes_t& digest);
 
     private:
@@ -44,6 +43,7 @@ class Solver {
         bytes_t m_challenge;
         bytes_t m_target, m_target_tmp;
         bytes_t m_buffer, m_buffer_tmp;
+
         std::mutex m_buffer_mutex;
         std::mutex m_target_mutex;
         std::atomic<bool> m_buffer_ready;

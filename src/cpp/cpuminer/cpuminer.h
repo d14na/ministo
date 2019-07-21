@@ -23,7 +23,6 @@ class CpuMiner {
 
     private:
         void thr_func(Solver& solver);
-
         void solutionFound(Solver::bytes_t const& solution);
 
     private:
@@ -32,9 +31,10 @@ class CpuMiner {
     private:
         std::vector<Solver> m_solvers;
         std::vector<std::thread> m_threads;
-
         std::mutex m_solution_mutex;
+
         Solver::bytes_t m_solution;
+
         bool m_bSolutionFound;
 
         volatile bool m_bExit;
