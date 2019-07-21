@@ -225,10 +225,19 @@ export default {
                     console.log('RECEIVED ACTION:', action)
 
                     if (action === 'config') {
-                        this.minadoAddress = data.address
-                        this.minadoChallenge = data.challenge
-                        this.minadoDifficulty = data.difficulty
-                        this.minadoTarget = data.target
+                        /* Stop the miner. */
+                        CPUMiner.stop()
+
+                        /* Give it a sec. */
+                        setTimeout(() => {
+                            this.minadoAddress = data.address
+                            this.minadoChallenge = data.challenge
+                            this.minadoDifficulty = data.difficulty
+                            this.minadoTarget = data.target
+
+                            /* Start the miner. */
+                            this.mine()
+                        }, 1000)
                     }
 
                     if (action === 'start_mining') {
