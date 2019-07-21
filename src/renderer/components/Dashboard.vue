@@ -232,7 +232,10 @@ export default {
                     }
 
                     if (action === 'start_mining') {
-                        this.mine()
+                        /* Validate running instance. */
+                        if (!this.isMining) {
+                            this.mine()
+                        }
                     }
 
                     if (action === 'stop_mining') {
@@ -412,15 +415,13 @@ export default {
                 }
             } // verifyAndSubmit
 
-            /* Set flag. */
-            this.isMining = true
-
             CPUMiner.stop()
 
             /* Update the CPU miner's parameters. */
             this.updateCPUMiner()
 
-            // ipc.send('_debug', `START MINING for [ ${this.minadoAddress} ]`)
+            /* Set flag. */
+            this.isMining = true
 
             CPUMiner.run((err, sol) => {
                 if (err) {
