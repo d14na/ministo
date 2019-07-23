@@ -60,6 +60,9 @@ static void HexToBytes(std::string const& hex, uint8_t bytes[])
 std::atomic<uint32_t> CPUSolver::hashes(0u); // statistics only
 
 
+/**
+ * CPU Solver
+ */
 CPUSolver::CPUSolver() noexcept :
     m_address(ADDRESS_LENGTH),
     m_challenge(UINT256_LENGTH),
@@ -71,6 +74,9 @@ CPUSolver::CPUSolver() noexcept :
     m_target_ready(false)
 { }
 
+/**
+ * Set Address
+ */
 void CPUSolver::setAddress(std::string const& addr)
 {
     assert(addr.length() == (ADDRESS_LENGTH * 2 + 2));
@@ -80,6 +86,9 @@ void CPUSolver::setAddress(std::string const& addr)
     updateBuffer();
 }
 
+/**
+ * Set Challenge
+ */
 void CPUSolver::setChallenge(std::string const& chal)
 {
     assert(chal.length() == (UINT256_LENGTH * 2 + 2));
@@ -89,41 +98,63 @@ void CPUSolver::setChallenge(std::string const& chal)
     updateBuffer();
 }
 
+/**
+ * Set Target
+ */
 void CPUSolver::setTarget(std::string const& target)
 {
     assert(target.length() <= (UINT256_LENGTH * 2 + 2));
 
     std::string const t(static_cast<std::string::size_type>(UINT256_LENGTH * 2 + 2) - target.length(), '0');
 
-    // Double-buffer system, the trySolution() function will be blocked
-    //  only when a change occurs.
+    /**
+     * Double-buffer system, the trySolution() function will be blocked
+     * only when a change occurs.
+     */
     {
         std::lock_guard<std::mutex> g(m_target_mutex);
+
         hexToBytes("0x" + t + target.substr(2), m_target_tmp);
     }
 
     m_target_ready = true;
 }
 
-// Buffer order: 1-challenge 2-ethAddress 3-solution
+/**
+ * Update Buffer
+ *
+ * Buffer order:
+ *     1 - Challenge
+ *     2 - Minter (ETH) Address
+ *     3 - Solution / Nonce
+ */
 void CPUSolver::updateBuffer()
 {
-    // The idea is to have a double-buffer system in order not to try
-    //  to acquire a lock on each hash() loop
+    /**
+     * The idea is to have a double-buffer system in order not to try
+     * to acquire a lock on each hash() loop.
+     */
     {
         std::lock_guard<std::mutex> g(m_buffer_mutex);
         std::copy(m_challenge.cbegin(), m_challenge.cend(), m_buffer_tmp.begin());
         std::copy(m_address.cbegin(), m_address.cend(), m_buffer_tmp.begin() + m_challenge.size());
     }
 
+    /* Set buffer flag. */
     m_buffer_ready = true;
 }
 
+/**
+ * Hash
+ */
 void CPUSolver::hash(bytes_t const& solution, bytes_t& digest)
 {
     if (m_buffer_ready) {
         std::lock_guard<std::mutex> g(m_buffer_mutex);
+
         m_buffer.swap(m_buffer_tmp);
+
+        /* Set buffer flag. */
         m_buffer_ready = false;
     }
 
@@ -132,24 +163,38 @@ void CPUSolver::hash(bytes_t const& solution, bytes_t& digest)
     keccak_256(&digest[0], digest.size(), &m_buffer[0], m_buffer.size());
 }
 
+/**
+ * Try Solution
+ */
 bool CPUSolver::trySolution(bytes_t const& solution)
 {
+    /* Initialize digest. */
     bytes_t digest(UINT256_LENGTH);
 
+    /* Perform (keccak) hash. */
     hash(solution, digest);
 
     if (m_target_ready) {
         std::lock_guard<std::mutex> g(m_target_mutex);
+
         m_target.swap(m_target_tmp);
+
+        /* Set target flag. */
         m_target_ready = false;
     }
 
+    /* Increment hash counter. */
     ++hashes;
 
+    /* Return less-than-or-equal test. */
     return lte(digest, m_target);
 }
 
-// static
+/**
+ * Hex To Bytes
+ *
+ * NOTE: This is a static function.
+ */
 void CPUSolver::hexToBytes(std::string const& hex, bytes_t& bytes)
 {
     assert(hex.length() % 2 == 0);
@@ -158,7 +203,11 @@ void CPUSolver::hexToBytes(std::string const& hex, bytes_t& bytes)
     HexToBytes(hex.substr(2), &bytes[0]);
 }
 
-// static
+/**
+ * Bytes to String
+ *
+ * NOTE: This is a static function.
+ */
 std::string CPUSolver::bytesToString(bytes_t const& buffer)
 {
     std::string output;
@@ -171,7 +220,11 @@ std::string CPUSolver::bytesToString(bytes_t const& buffer)
     return output;
 }
 
-// static
+/**
+ * Less-Than-Or-Equal
+ *
+ * NOTE: This is a static function.
+ */
 bool CPUSolver::lte(bytes_t const& left, bytes_t const& right)
 {
     assert(left.size() == right.size());

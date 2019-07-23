@@ -380,54 +380,67 @@ __device__ void keccak(const char *message, int message_len, unsigned char *outp
     memcpy(output, state, output_len);
 }
 
-// hash length is 256 bits
-__global__ void gpu_mine( char * working_memory_hash, char * working_memory_nonce, unsigned char *challenge_hash, char * device_solution, int *done,  const unsigned char * hash_prefix,int now, int cnt)
+/**
+ * GPU Mine
+ *
+ * NOTE: This function uses the `__global__` decorator; and therefore
+ * will be executed as a "kernel" within the GPU cores.
+ *
+ * NOTE: Hash length is 256 bits.
+ */
+__global__
+void gpu_mine(char * working_memory_hash, char * working_memory_nonce, unsigned char *challenge_hash, char * device_solution, int *done, const unsigned char * hash_prefix,int now, int cnt)
 {
+    int tid = threadIdx.x + (blockIdx.x * blockDim.x);
 
-int tid = threadIdx.x + (blockIdx.x * blockDim.x);
-char * message = &working_memory_nonce[84*tid];
-char * hash =&working_memory_hash[32*(tid)];
+    char * message = &working_memory_nonce[84*tid];
 
-int str_len = 84;
+    char * hash =&working_memory_hash[32*(tid)];
 
+    int str_len = 84;
 
-  curandState_t state;
-  /* we have to initialize the state */
-  curand_init(now, tid, cnt, &state);
-	int len = 0;
-	for(len = 0 ; len < 52; len++){
+    curandState_t state;
+    /* we have to initialize the state */
+
+    curand_init(now, tid, cnt, &state);
+
+    int len = 0;
+
+    for(len = 0 ; len < 52; len++){
 		message[len] = hash_prefix[len];
 	}
-for(int i =0; i<LOOP_IN_GPU_OPTIMIZATION;i++){
 
-	for(len = 0; len < 32; len++) {
-		char r = (char)curand(&state) % 256;
-		message[52+len] = r;
-	}
+    for (int i = 0; i < LOOP_IN_GPU_OPTIMIZATION; i++) {
+        for (len = 0; len < 32; len++) {
+            char r = (char)curand(&state) % 256;
 
+            message[52 + len] = r;
+        }
 
+        const int output_len = 32;
 
-	const int output_len = 32;
-	unsigned char output[output_len];
-	keccak(&message[0], str_len, &output[0], output_len);
+        unsigned char output[output_len];
 
-	if (compare_hash(&challenge_hash[0], &output[0], output_len))
-	{
-		if(done[0] != 1){
-			done[0] = 1;
-			memcpy(device_solution, message, str_len);
-		}
-		return;
-	}
+        keccak(&message[0], str_len, &output[0], output_len);
 
+        if (compare_hash(&challenge_hash[0], &output[0], output_len)) {
+            if (done[0] != 1) {
+                done[0] = 1;
+
+                memcpy(device_solution, message, str_len);
+            }
+
+            return;
+        }
+    }
 }
-}
 
-
-
+/**
+ * Stop Solving
+ */
 void stop_solving()
 {
-  h_done[0] = 1 ;
+    h_done[0] = 1 ;
 }
 
 

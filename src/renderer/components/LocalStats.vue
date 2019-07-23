@@ -45,7 +45,7 @@
           :size="avatarSize"
           color="grey lighten-4"
         >
-          <img src="~@/assets/dark-hood-icon.jpg" alt="avatar">
+          <img src="~@/assets/icons/png/64x64.png" alt="icon">
         </v-avatar>
 
         <v-btn flat icon color="pink">
@@ -124,7 +124,7 @@ import {
     mapGetters
 } from 'vuex'
 
-import SystemInformation from './Stats/SystemInformation'
+import SystemInformation from './LocalStats/SystemInformation'
 
 export default {
     data: () => ({

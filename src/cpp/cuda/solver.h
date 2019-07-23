@@ -28,9 +28,9 @@ class CUDASolver
 
         void setTarget(std::string const& target);
 
-        void setBlocksize(int  size);
+        void setBlockSize(int  size);
 
-        void setThreadsize(int  size);
+        void setThreadSize(int  size);
 
         void init();
 

@@ -2,6 +2,8 @@
 
 import { app, BrowserWindow } from 'electron'
 
+// const path = require('path')
+
 /**
  * Set `__static` path to static files in production
  * https://simulatedgreg.gitbooks.io/electron-vue/content/en/using-static-assets.html
@@ -26,9 +28,20 @@ function createWindow () {
      *       from the full client.
      */
     mainWindow = new BrowserWindow({
+        /* Set dimensions. */
+        width: 325,
         height: 500,
+        minWidth: 325,
+        minHeight: 500,
+
         useContentSize: true,
-        width: 325
+
+        /* Set background color. */
+        backgroundColor: '#312450',
+
+        /* Set app icon. */
+        // icon: path.join(__dirname, 'assets/icons/png/64x64.png')
+        icon: '~@/assets/icons/png/64x64.png'
     })
 
     mainWindow.loadURL(winURL)

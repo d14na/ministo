@@ -28,8 +28,8 @@ class HybridMinisto
         void setMinterAddress(std::string const& minterAddress);
 
         /* Only used if CUDA mining. */
-        void setBlocksize(std::string const& blocksize);
-        void setThreadsize(std::string const& threadsize);
+        void setBlockSize(std::string const& blocksize);
+        void setThreadSize(std::string const& threadsize);
         void setHardwareType(std::string const& hardwareType);
 
     public:

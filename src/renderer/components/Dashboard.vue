@@ -10,12 +10,7 @@
 
                     <v-spacer></v-spacer>
 
-                    <v-btn
-                        dark
-                        icon
-                    >
-                        <v-icon>fa-ellipsis-v</v-icon>
-                    </v-btn>
+                    <img src="~@/assets/icons/png/48x48.png" alt="logo">
                 </v-card-title>
 
                 <v-card-text>

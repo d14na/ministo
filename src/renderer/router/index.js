@@ -11,9 +11,9 @@ export default new Router({
             component: require('@/components/Dashboard').default
         },
         {
-            path: '/stats',
-            name: 'stats',
-            component: require('@/components/Stats').default
+            path: '/local-stats',
+            name: 'local-stats',
+            component: require('@/components/LocalStats').default
         },
         {
             path: '*',

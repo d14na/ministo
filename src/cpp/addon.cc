@@ -102,11 +102,11 @@ namespace ministo {
     /**
      * Set Thread Size
      */
-    NAN_METHOD(setThreadsize) {
+    NAN_METHOD(setThreadSize) {
         MaybeLocal<v8::String> inp = Nan::To<v8::String>(info[0]);
 
         if (!inp.IsEmpty()) {
-            hybrid_ministo->setThreadsize(std::string(*Nan::Utf8String(inp.ToLocalChecked())));
+            hybrid_ministo->setThreadSize(std::string(*Nan::Utf8String(inp.ToLocalChecked())));
         }
 
         info.GetReturnValue().SetUndefined();
@@ -115,11 +115,11 @@ namespace ministo {
     /**
      * Set Block Size
      */
-    NAN_METHOD(setBlocksize) {
+    NAN_METHOD(setBlockSize) {
         MaybeLocal<v8::String> inp = Nan::To<v8::String>(info[0]);
 
         if (!inp.IsEmpty()) {
-            hybrid_ministo->setBlocksize(std::string(*Nan::Utf8String(inp.ToLocalChecked())));
+            hybrid_ministo->setBlockSize(std::string(*Nan::Utf8String(inp.ToLocalChecked())));
         }
 
         info.GetReturnValue().SetUndefined();
@@ -193,13 +193,13 @@ namespace ministo {
         );
 
         Set(target
-            , New<v8::String>("setBlocksize").ToLocalChecked()
-            , New<v8::FunctionTemplate>(setBlocksize)->GetFunction()
+            , New<v8::String>("setBlockSize").ToLocalChecked()
+            , New<v8::FunctionTemplate>(setBlockSize)->GetFunction()
         );
 
         Set(target
-            , New<v8::String>("setThreadsize").ToLocalChecked()
-            , New<v8::FunctionTemplate>(setThreadsize)->GetFunction()
+            , New<v8::String>("setThreadSize").ToLocalChecked()
+            , New<v8::FunctionTemplate>(setThreadSize)->GetFunction()
         );
 
         Set(target

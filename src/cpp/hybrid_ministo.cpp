@@ -78,27 +78,27 @@ void HybridMinisto::setMinterAddress(std::string const& minterAddress)
     }
 }
 
-void HybridMinisto::setBlocksize(std::string const& blocksize)
+void HybridMinisto::setBlockSize(std::string const& blocksize)
 {
     if (strcmp(m_hardwareType.c_str(), "cuda") == 0) {
         cout << "Hybridminer: setting blocksize: " << blocksize << "\n";
 
         int i = stoi(blocksize);
 
-        // cudaSolver.setBlocksize(i);
+        // cudaSolver.setBlockSize(i);
     } else {
         /* just ignore if cpu mining? */
     }
 }
 
-void HybridMinisto::setThreadsize(std::string const& threadsize)
+void HybridMinisto::setThreadSize(std::string const& threadsize)
 {
     if (strcmp(m_hardwareType.c_str(), "cuda") == 0) {
         cout << "Hybridminer: setting threadsize: " << threadsize << "\n";
 
         int i = stoi(threadsize);
 
-        // cudaSolver.setThreadsize(i);
+        // cudaSolver.setThreadSize(i);
     } else {
         /* just ignore if cpu mining? */
     }
