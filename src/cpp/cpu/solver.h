@@ -1,15 +1,17 @@
-#ifndef _SOLVER_H_
-#define _SOLVER_H_
+#ifndef _CPUSOLVER_H_
+#define _CPUSOLVER_H_
 
 #include <atomic>
 #include <mutex>
 #include <string>
 #include <vector>
 
+
 /**
- * Solver
+ * (CPU) Solver
  */
-class Solver {
+class CPUSolver
+{
     public:
         typedef std::vector<uint8_t> bytes_t;
 
@@ -17,11 +19,13 @@ class Solver {
         static const unsigned short UINT256_LENGTH = 32u;
 
     public:
-        Solver() noexcept;
+        CPUSolver() noexcept;
 
     public:
         void setAddress(std::string const& addr);
+
         void setChallenge(std::string const& chal);
+
         void setTarget(std::string const& target);
 
     public:
@@ -36,6 +40,7 @@ class Solver {
 
     private:
         void updateBuffer();
+
         void hash(bytes_t const& solution, bytes_t& digest);
 
     private:

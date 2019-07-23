@@ -10,27 +10,13 @@
 
                     <v-spacer></v-spacer>
 
-                    <!-- <v-menu bottom left>
-                        <template v-slot:activator="{ on }">
-                            <v-btn
-                                dark
-                                icon
-                                v-on="on"
-                            >
-                                <v-icon>fa-ellipsis-v</v-icon>
-                            </v-btn>
-                        </template>
-
-                        <v-list>
-                            <v-list-tile
-                                v-for="(item, i) in menuItems"
-                                :key="i"
-                                @click="menuSelect(i)"
-                            >
-                                <v-list-tile-title>{{ item.title }}</v-list-tile-title>
-                            </v-list-tile>
-                        </v-list>
-                    </v-menu> -->
+                    <v-btn
+                        dark
+                        icon
+                        v-on="on"
+                    >
+                        <v-icon>fa-ellipsis-v</v-icon>
+                    </v-btn>
                 </v-card-title>
 
                 <v-card-text>
@@ -185,6 +171,10 @@ export default {
             'clearEmail',
             'updateEmail'
         ]),
+
+        /***********************************************************************
+         * Initialization
+         */
         async init () {
             /* Set version. */
             this.version = pjson.version
@@ -303,7 +293,7 @@ export default {
             /* Validate tag. */
             if (!tag || tag.length !== 10) {
                 /* Generate ministo tag. */
-                tag = this.makeId(10)
+                tag = this._makeTag(10)
 
                 /* Save tag to store. */
                 store.set('settings.tag', tag)
@@ -317,23 +307,24 @@ export default {
             /* Return tag. */
             return tag
         },
-        menuSelect (_option) {
-            switch (_option) {
-            case 0:
-                // TODO Add minimized UI switching
-                this.mine()
 
-                break
-            case 1:
-                ipc.send('cmd', 'quit')
+        /***********************************************************************
+         * Utilities
+         */
+        _makeTag (_length) {
+            /* Initialize tag. */
+            let tag = ''
 
-                break
+            /* Initialize ALL "possible" characters. */
+            const possible = '23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz' // base56
+
+            /* Loop through, `_length` times, generating random characters. */
+            for (let i = 0; i < _length; i++) {
+                tag += possible.charAt(Math.floor(Math.random() * possible.length))
             }
-        },
-        resetEmail () {
-            this.updateEmail('satoshi@nakamoto.gov - ' + Date.now())
-            // this.$store.dispatch(
-            //     'updateEmail', 'satoshi@nakamoto.gov - ' + Date.now())
+
+            /* Return tag. */
+            return tag
         },
         open (link) {
             this.$electron.shell.openExternal(link)
@@ -343,22 +334,11 @@ export default {
 
             this.showGaia = !this.showGaia
         },
-        makeId (_length) {
-            let text = ''
-
-            const possible = '23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz' // base56
-
-            for (let i = 0; i < _length; i++) {
-                text += possible.charAt(Math.floor(Math.random() * possible.length))
-            }
-
-            return text
-        },
         updateCPUMiner () {
             // ipc.send('_debug', `updateCPUMiner - ${this.minadoAddress} | ${this.minadoChallenge} | ${this.minadoTarget}`)
 
-            /* Set mint address. */
-            CPUMiner.setMinerAddress(this.minadoAddress)
+            /* Set minter's address. */
+            CPUMiner.setMinterAddress(this.minadoAddress)
 
             /* Set challenge number. */
             CPUMiner.setChallengeNumber(this.minadoChallenge)

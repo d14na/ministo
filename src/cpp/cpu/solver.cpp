@@ -3,7 +3,6 @@
 
 #include <assert.h>
 
-/* Initialize ascii set. */
 static const char* const ascii[] = {
     "00","01","02","03","04","05","06","07","08","09","0a","0b","0c","0d","0e","0f",
     "10","11","12","13","14","15","16","17","18","19","1a","1b","1c","1d","1e","1f",
@@ -23,47 +22,45 @@ static const char* const ascii[] = {
     "f0","f1","f2","f3","f4","f5","f6","f7","f8","f9","fa","fb","fc","fd","fe","ff"
 };
 
-/**
- * From Ascii
- */
-static uint8_t fromAscii(uint8_t c) {
+static uint8_t fromAscii(uint8_t c)
+{
     if (c >= '0' && c <= '9')
         return (c - '0');
+
     if (c >= 'a' && c <= 'f')
         return (c - 'a' + 10);
+
     if (c >= 'A' && c <= 'F')
         return (c - 'A' + 10);
 
-    #if defined(__EXCEPTIONS) || defined(DEBUG)
-        throw std::runtime_error("invalid character");
-    #else
-        return 0xff;
-    #endif
+#if defined(__EXCEPTIONS) || defined(DEBUG)
+    throw std::runtime_error("invalid character");
+#else
+    return 0xff;
+#endif
 }
 
-/**
- * Ascii (R)
- */
-static uint8_t ascii_r(uint8_t a, uint8_t b) {
+static uint8_t ascii_r(uint8_t a, uint8_t b)
+{
     return fromAscii(a) * 16 + fromAscii(b);
 }
 
-/**
- * Hex To Bytes
- */
-static void HexToBytes(std::string const& hex, uint8_t bytes[]) {
+static void HexToBytes(std::string const& hex, uint8_t bytes[])
+{
     for (std::string::size_type i = 0, j = 0; i < hex.length(); i += 2, ++j) {
         bytes[j] = ascii_r(hex[i], hex[i + 1]);
     }
 }
 
+
 // --------------------------------------------------------------------
 
-// static
-std::atomic<uint32_t> Solver::hashes(0u); // statistics only
 
-/* Initialize Solver. */
-Solver::Solver() noexcept :
+// static
+std::atomic<uint32_t> CPUSolver::hashes(0u); // statistics only
+
+
+CPUSolver::CPUSolver() noexcept :
     m_address(ADDRESS_LENGTH),
     m_challenge(UINT256_LENGTH),
     m_target(UINT256_LENGTH),
@@ -74,39 +71,26 @@ Solver::Solver() noexcept :
     m_target_ready(false)
 { }
 
-/**
- * Set Address
- */
-void Solver::setAddress(std::string const& addr) {
-    /* Validate address. */
+void CPUSolver::setAddress(std::string const& addr)
+{
     assert(addr.length() == (ADDRESS_LENGTH * 2 + 2));
 
-    /* Convert to bytes. */
     hexToBytes(addr, m_address);
 
-    /* Update buffer. */
     updateBuffer();
 }
 
-/**
- * Set Challenge
- */
-void Solver::setChallenge(std::string const& chal) {
-    /* Validate challenge. */
+void CPUSolver::setChallenge(std::string const& chal)
+{
     assert(chal.length() == (UINT256_LENGTH * 2 + 2));
 
-    /* Convert to bytes. */
     hexToBytes(chal, m_challenge);
 
-    /* Update buffer. */
     updateBuffer();
 }
 
-/**
- * Set Target
- */
-void Solver::setTarget(std::string const& target) {
-    /* Validate target. */
+void CPUSolver::setTarget(std::string const& target)
+{
     assert(target.length() <= (UINT256_LENGTH * 2 + 2));
 
     std::string const t(static_cast<std::string::size_type>(UINT256_LENGTH * 2 + 2) - target.length(), '0');
@@ -121,16 +105,11 @@ void Solver::setTarget(std::string const& target) {
     m_target_ready = true;
 }
 
-/**
- * Update Buffer
- *
- * NOTE: Buffer order: 1-challenge 2-ethAddress 3-solution.
- */
-void Solver::updateBuffer() {
-    /**
-     * The idea is to have a double-buffer system in order not to try
-     * to acquire a lock on each hash() loop.
-     */
+// Buffer order: 1-challenge 2-ethAddress 3-solution
+void CPUSolver::updateBuffer()
+{
+    // The idea is to have a double-buffer system in order not to try
+    //  to acquire a lock on each hash() loop
     {
         std::lock_guard<std::mutex> g(m_buffer_mutex);
         std::copy(m_challenge.cbegin(), m_challenge.cend(), m_buffer_tmp.begin());
@@ -140,10 +119,8 @@ void Solver::updateBuffer() {
     m_buffer_ready = true;
 }
 
-/**
- * Hash
- */
-void Solver::hash(bytes_t const& solution, bytes_t& digest) {
+void CPUSolver::hash(bytes_t const& solution, bytes_t& digest)
+{
     if (m_buffer_ready) {
         std::lock_guard<std::mutex> g(m_buffer_mutex);
         m_buffer.swap(m_buffer_tmp);
@@ -155,11 +132,10 @@ void Solver::hash(bytes_t const& solution, bytes_t& digest) {
     keccak_256(&digest[0], digest.size(), &m_buffer[0], m_buffer.size());
 }
 
-/**
- * Try Solution
- */
-bool Solver::trySolution(bytes_t const& solution) {
+bool CPUSolver::trySolution(bytes_t const& solution)
+{
     bytes_t digest(UINT256_LENGTH);
+
     hash(solution, digest);
 
     if (m_target_ready) {
@@ -173,20 +149,20 @@ bool Solver::trySolution(bytes_t const& solution) {
     return lte(digest, m_target);
 }
 
-/**
- * (Solver) Hex To Bytes
- */
-void Solver::hexToBytes(std::string const& hex, bytes_t& bytes) {
+// static
+void CPUSolver::hexToBytes(std::string const& hex, bytes_t& bytes)
+{
     assert(hex.length() % 2 == 0);
     assert(bytes.size() == (hex.length() / 2 - 1));
+
     HexToBytes(hex.substr(2), &bytes[0]);
 }
 
-/**
- * (Solver) Bytes To String
- */
-std::string Solver::bytesToString(bytes_t const& buffer) {
+// static
+std::string CPUSolver::bytesToString(bytes_t const& buffer)
+{
     std::string output;
+
     output.reserve(buffer.size() * 2 + 1);
 
     for (unsigned i = 0; i < buffer.size(); ++i)
@@ -195,17 +171,18 @@ std::string Solver::bytesToString(bytes_t const& buffer) {
     return output;
 }
 
-/**
- * (Solver) Less-Than-Or-Equal
- */
-bool Solver::lte(bytes_t const& left, bytes_t const& right) {
+// static
+bool CPUSolver::lte(bytes_t const& left, bytes_t const& right)
+{
     assert(left.size() == right.size());
 
     for (unsigned i = 0; i < left.size(); ++i) {
         if (left[i] == right[i])
             continue;
+
         if (left[i] > right[i])
             return false;
+
         return true;
     }
 
