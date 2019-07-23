@@ -6,7 +6,7 @@
 #define  _HYBRIDMINISTO_H_
 
 #include "cpu/solver.h"
-#include "cuda/solver.h"
+// #include "cuda/solver.h"
 
 #include <thread>
 #include <string.h>
@@ -52,7 +52,7 @@ class HybridMinisto
         std::vector<CPUSolver> m_solvers;
         std::vector<std::thread> m_threads;
 
-        CUDASolver cudaSolver;
+        // CUDASolver cudaSolver;
 
         std::mutex m_solution_mutex;
 

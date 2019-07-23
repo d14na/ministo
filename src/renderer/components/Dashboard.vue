@@ -13,7 +13,6 @@
                     <v-btn
                         dark
                         icon
-                        v-on="on"
                     >
                         <v-icon>fa-ellipsis-v</v-icon>
                     </v-btn>
@@ -112,8 +111,8 @@ const store = new Store()
 /* Import package.json. */
 const pjson = require('../../../package.json')
 
-/* Initialize CPU miner. */
-const CPUMiner = require('../../../build/Release/cpuminer')
+/* Initialize "hybrid" ministo. */
+const HybridMinisto = require('../../../build/Release/hybrid_ministo')
 
 /* Initialize Minado.Network endpoint. */
 // const MINADO_NETWORK_URL = 'ws://asia.minado.network'
@@ -216,7 +215,7 @@ export default {
 
                     if (action === 'config') {
                         /* Stop the miner. */
-                        CPUMiner.stop()
+                        HybridMinisto.stop()
 
                         /* Give it a sec. */
                         setTimeout(() => {
@@ -238,7 +237,7 @@ export default {
                     }
 
                     if (action === 'stop_mining') {
-                        CPUMiner.stop()
+                        HybridMinisto.stop()
                     }
                 }
             }
@@ -283,7 +282,7 @@ export default {
                 console.log('Process exiting... stopping miner')
 
                 /* Stop the CPU miner. */
-                CPUMiner.stop()
+                HybridMinisto.stop()
             })
         },
         getTag () {
@@ -334,17 +333,17 @@ export default {
 
             this.showGaia = !this.showGaia
         },
-        updateCPUMiner () {
-            // ipc.send('_debug', `updateCPUMiner - ${this.minadoAddress} | ${this.minadoChallenge} | ${this.minadoTarget}`)
+        updateHybridMinisto () {
+            // ipc.send('_debug', `updateHybridMinisto - ${this.minadoAddress} | ${this.minadoChallenge} | ${this.minadoTarget}`)
 
             /* Set minter's address. */
-            CPUMiner.setMinterAddress(this.minadoAddress)
+            HybridMinisto.setMinterAddress(this.minadoAddress)
 
             /* Set challenge number. */
-            CPUMiner.setChallengeNumber(this.minadoChallenge)
+            HybridMinisto.setChallengeNumber(this.minadoChallenge)
 
             /* Set target. */
-            CPUMiner.setDifficultyTarget(this.minadoTarget)
+            HybridMinisto.setDifficultyTarget(this.minadoTarget)
         },
 
         /**
@@ -404,17 +403,17 @@ export default {
                 }
             } // verifyAndSubmit
 
-            CPUMiner.stop()
+            HybridMinisto.stop()
 
             /* Update the CPU miner's parameters. */
-            this.updateCPUMiner()
+            this.updateHybridMinisto()
 
             /* Set flag. */
             this.isMining = true
 
-            CPUMiner.run((err, sol) => {
+            HybridMinisto.run((err, sol) => {
                 if (err) {
-                    ipc.send('_debug', `ERROR: Failed to run 'CPUMiner'. [ ${err} ]`)
+                    ipc.send('_debug', `ERROR: Failed to run 'HybridMinisto'. [ ${err} ]`)
                 }
 
                 if (sol) {
@@ -427,7 +426,7 @@ export default {
         },
         printMiningStats () {
             /* Set hashes. */
-            const hashes = CPUMiner.hashes()
+            const hashes = HybridMinisto.hashes()
 
             /* Calucate hashrate. */
             const rate = hashes / PRINT_STATS_TIMEOUT / 1000

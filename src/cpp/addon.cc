@@ -232,5 +232,5 @@ namespace ministo {
         node::AtExit(cleanup, hybrid_ministo);
     }
 
-    NODE_MODULE(ministo, Init)
+    NODE_MODULE(hybrid_ministo, Init)
 }

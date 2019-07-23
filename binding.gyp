@@ -11,11 +11,11 @@
     ],
     "targets": [
         {
-            "target_name": "ministo",
+            "target_name": "hybrid_ministo",
             "sources": [
-                # "src/cpp/addon.cc",
-                # "src/cpp/cpu/sha3.c",
-                # "src/cpp/cpu/solver.cpp",
+                "src/cpp/addon.cc",
+                "src/cpp/cpu/sha3.c",
+                "src/cpp/cpu/solver.cpp",
                 # "src/cpp/cuda/solver.cu",
                 "src/cpp/hybrid_ministo.cpp" # do we place this last in the dependencies?
             ],
@@ -62,7 +62,10 @@
                     {
                         # 'libraries': ['-framework CUDA'],
                         'include_dirs': ['/usr/local/include'],
-                        'library_dirs': ['/usr/local/lib', '/Library/Frameworks'],
+                        'library_dirs': [
+                            '/usr/local/lib', 
+                            '/Library/Frameworks'
+                        ],
                     }
                 ], [
                     'OS=="linux"',
