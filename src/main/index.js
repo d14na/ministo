@@ -37,7 +37,7 @@ function createWindow () {
         useContentSize: true,
 
         /* Set background color. */
-        backgroundColor: '#312450',
+        backgroundColor: '#387fea',
 
         /* Set app icon. */
         // icon: path.join(__dirname, 'assets/icons/png/64x64.png')

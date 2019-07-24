@@ -48,15 +48,22 @@ static const uint64_t RC[24] = \
 };
 
 /*** Helper macros to unroll the permutation. ***/
+
 #define rol(x, s) (((x) << s) | ((x) >> (64 - s)))
+
 #define REPEAT6(e) e e e e e e
+
 #define REPEAT24(e) REPEAT6(e e e e)
+
 #define REPEAT5(e) e e e e e
+
 #define FOR5(v, s, e) \
     v = 0;            \
     REPEAT5(e; v += s;)
 
-/*** Keccak-f[1600] ***/
+/**
+ * Keccak-f[1600]
+ */
 static inline void keccakf(void* state) {
     uint64_t* a = (uint64_t*)state;
     uint64_t b[5] = {0};
@@ -64,7 +71,7 @@ static inline void keccakf(void* state) {
     uint8_t x, y;
 
     for (int i = 0; i < 24; i++) {
-        // Theta
+        /* Theta */
         FOR5(x, 1,
             b[x] = 0;
 
@@ -75,7 +82,7 @@ static inline void keccakf(void* state) {
             FOR5(y, 5,
                 a[y + x] ^= b[(x + 4) % 5] ^ rol(b[(x + 1) % 5], 1); ))
 
-        // Rho and pi
+        /* Rho and pi */
         t = a[1];
         x = 0;
         REPEAT24(b[0] = a[pi[x]];
@@ -83,7 +90,7 @@ static inline void keccakf(void* state) {
              t = b[0];
              x++; )
 
-        // Chi
+        /* Chi */
         FOR5(y, 5,
             FOR5(x, 1,
                 b[x] = a[y + x];)
@@ -101,20 +108,23 @@ static inline void keccakf(void* state) {
 /*** Some helper macros. ***/
 
 #define _(S) do { S } while (0)
+
 #define FOR(i, ST, L, S) \
     _(for (size_t i = 0; i < L; i += ST) { S; })
+
 #define mkapply_ds(NAME, S)                                          \
-  static inline void NAME(uint8_t* dst,                              \
-                          const uint8_t* src,                        \
-                          size_t len) {                              \
-    FOR(i, 1, len, S);                                               \
-  }
+    static inline void NAME(uint8_t* dst,                            \
+                            const uint8_t* src,                      \
+                            size_t len) {                            \
+        FOR(i, 1, len, S);                                           \
+    }
+
 #define mkapply_sd(NAME, S)                                          \
-  static inline void NAME(const uint8_t* src,                        \
-                          uint8_t* dst,                              \
-                          size_t len) {                              \
-    FOR(i, 1, len, S);                                               \
-  }
+    static inline void NAME(const uint8_t* src,                      \
+                            uint8_t* dst,                            \
+                            size_t len) {                            \
+        FOR(i, 1, len, S);                                           \
+    }
 
 mkapply_ds(xorin, dst[i] ^= src[i])  // xorin
 mkapply_sd(setout, dst[i] = src[i])  // setout
@@ -122,67 +132,89 @@ mkapply_sd(setout, dst[i] = src[i])  // setout
 #define P keccakf
 #define Plen 200
 
-// Fold P*F over the full blocks of an input.
-#define foldP(I, L, F) \
-  while (L >= rate) {  \
-    F(a, I, rate);     \
-    P(a);              \
-    I += rate;         \
-    L -= rate;         \
-  }
+/**
+ * Fold P*F over the full blocks of an input.
+ */
+#define foldP(I, L, F)      \
+    while (L >= rate) {     \
+        F(a, I, rate);      \
+        P(a);               \
+        I += rate;          \
+        L -= rate;          \
+    }
 
-/** The sponge-based hash construction. **/
+/**
+ * (Perform) Hash
+ *
+ * NOTE: The sponge-based hash construction.
+ */
 static inline int hash(uint8_t* out, size_t outlen,
                        const uint8_t* in, size_t inlen,
                        size_t rate, uint8_t delim) {
-  if ((out == NULL) || ((in == NULL) && inlen != 0) || (rate >= Plen)) {
-    return -1;
-  }
-  uint8_t a[Plen] = {0};
-  // Absorb input.
-  foldP(in, inlen, xorin);
-  // Xor in the DS and pad frame.
-  a[inlen] ^= delim;
-  a[rate - 1] ^= 0x80;
-  // Xor in the last block.
-  xorin(a, in, inlen);
-  // Apply P
-  P(a);
-  // Squeeze output.
-  foldP(out, outlen, setout);
-  setout(a, out, outlen);
-  memset_s(a, 200, 0, 200);
-  return 0;
-}
+    /* Validate inputs. */
+    if ((out == NULL) || ((in == NULL) && inlen != 0) || (rate >= Plen)) {
+        return -1;
+    }
 
-/*** Helper macros to define SHA3 and SHAKE instances. ***/
-#define defshake(bits)                                            \
-  int shake##bits(uint8_t* out, size_t outlen,                    \
-                  const uint8_t* in, size_t inlen) {              \
-    return hash(out, outlen, in, inlen, 200 - (bits / 4), 0x1f);  \
-  }
-#define defsha3(bits)                                             \
-  int sha3_##bits(uint8_t* out, size_t outlen,                    \
-                  const uint8_t* in, size_t inlen) {              \
-    if (outlen > (bits/8)) {                                      \
-      return -1;                                                  \
-    }                                                             \
-    return hash(out, outlen, in, inlen, 200 - (bits / 4), 0x06);  \
-  }
+    uint8_t a[Plen] = {0};
+
+    /* Absorb input. */
+    foldP(in, inlen, xorin);
+
+    /* Xor in the DS and pad frame. */
+    a[inlen] ^= delim;
+    a[rate - 1] ^= 0x80;
+
+    /* Xor in the last block. */
+    xorin(a, in, inlen);
+
+    /* Apply P. */
+    // NOTE: This is an alias for `keccakf`.
+    P(a);
+
+    /* Squeeze output. */
+    foldP(out, outlen, setout);
+    setout(a, out, outlen);
+    memset_s(a, 200, 0, 200);
+
+    /* Return zero. */
+    return 0;
+}
 
 /**
- * Define Keccak(_bits)
+ * Define SHAKE(_bits) instance.
  */
-#define defkeccak(bits)                                           \
-    int keccak_##bits(uint8_t* out, size_t outlen,                \
-                      const uint8_t* in, size_t inlen) {          \
-                                                                  \
-    if (outlen > (bits/8)) {                                      \
-        return -1;                                                \
-    }                                                             \
-                                                                  \
-    return hash(out, outlen, in, inlen, 200 - (bits / 4), 0x01);  \
-}
+#define defshake(bits)                                                  \
+    int shake##bits(uint8_t* out, size_t outlen,                        \
+                    const uint8_t* in, size_t inlen) {                  \
+        return hash(out, outlen, in, inlen, 200 - (bits / 4), 0x1f);    \
+    }
+
+/**
+ * Define SHA3(_bits) instance.
+ */
+#define defsha3(bits)                                                   \
+    int sha3_##bits(uint8_t* out, size_t outlen,                        \
+                    const uint8_t* in, size_t inlen) {                  \
+        if (outlen > (bits/8)) {                                        \
+            return -1;                                                  \
+        }                                                               \
+                                                                        \
+        return hash(out, outlen, in, inlen, 200 - (bits / 4), 0x06);    \
+    }
+
+/**
+ * Define Keccak(_bits) instance.
+ */
+#define defkeccak(bits)                                                 \
+    int keccak_##bits(uint8_t* out, size_t outlen,                      \
+                      const uint8_t* in, size_t inlen) {                \
+        if (outlen > (bits/8)) {                                        \
+            return -1;                                                  \
+        }                                                               \
+                                                                        \
+        return hash(out, outlen, in, inlen, 200 - (bits / 4), 0x01);    \
+    }
 
 /*** FIPS202 SHAKE VOFs ***/
 defshake(128)

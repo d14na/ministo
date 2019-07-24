@@ -76,4 +76,4 @@ class CUDASolver
         static std::atomic<uint32_t> hashes;
 };
 
-#endif // !_SOLVER_H_
+#endif // !_CUDASOLVER_H_

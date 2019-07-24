@@ -383,13 +383,12 @@ __device__ void keccak(const char *message, int message_len, unsigned char *outp
 /**
  * GPU Mine
  *
- * NOTE: This function uses the `__global__` decorator; and therefore
+ * NOTE: This function uses the `__global__` declaration; and therefore
  * will be executed as a "kernel" within the GPU cores.
  *
  * NOTE: Hash length is 256 bits.
  */
-__global__
-void gpu_mine(char * working_memory_hash, char * working_memory_nonce, unsigned char *challenge_hash, char * device_solution, int *done, const unsigned char * hash_prefix,int now, int cnt)
+__global__ void gpu_mine(char * working_memory_hash, char * working_memory_nonce, unsigned char *challenge_hash, char * device_solution, int *done, const unsigned char * hash_prefix,int now, int cnt)
 {
     int tid = threadIdx.x + (blockIdx.x * blockDim.x);
 

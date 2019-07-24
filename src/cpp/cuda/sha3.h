@@ -41,4 +41,4 @@ class CUDASha3
         cudaEvent_t start, stop;
 };
 
-#endif // !_SOLVER_H_
+#endif // !_CUDASHA3_H_

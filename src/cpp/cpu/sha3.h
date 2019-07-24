@@ -1,11 +1,12 @@
-#ifndef KECCAK_FIPS202_H
-#define KECCAK_FIPS202_H
+#ifndef _CPUSHA3_H_
+#define _CPUSHA3_H_
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #define __STDC_WANT_LIB_EXT1__ 1
+
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -30,4 +31,4 @@ deckeccak(256)
 }
 #endif
 
-#endif
+#endif // !_CPUSHA3_H_
