@@ -20,11 +20,11 @@
 
                     <p class="mt-3">
                         Open your web browser to:
-                        <br /><strong>https://minado.network/#/{{ministoTag}}</strong>
+                        <br /><strong>https://minado.network/#/m/{{ministoTag}}</strong>
                         <v-icon
                             small
                             class="ml-2 red--text"
-                            @click="open('https://minado.network/#/' + ministoTag)"
+                            @click="open('https://minado.network/#/m/' + ministoTag)"
                         >
                             fa-external-link-alt
                         </v-icon>
@@ -77,7 +77,7 @@
                     </div>
 
                     <div class="activity-graph elevation-1">
-                        [ SHOW REAL-TIME ACTIVITY GRAPH HERE ]
+                        [ REAL-TIME ACTIVITY GRAPH ]
                     </div>
                 </v-card-text>
             </v-card>
@@ -459,10 +459,13 @@ export default {
     width: 100%;
     height: 50px;
     margin-top: 10px;
-    padding: 15px;
+    padding: 12px;
 
     color: white;
+    font-size: 1.2em;
     font-weight: bold;
+
+    text-align: center;
 
     background-color: rgba(45, 120, 220, 0.5);
     border: 1pt solid #333;
