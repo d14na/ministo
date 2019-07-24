@@ -128,9 +128,9 @@ export default {
         minadoDifficulty: '',
         minadoTarget: '',
 
-        numHashes: '',
-        numShares: '',
-        hashRate: '',
+        hashRate: 'n/a',
+        numHashes: 0,
+        numShares: 0,
 
         avatarSize: 64,
         ministoTag: '',
@@ -360,13 +360,11 @@ export default {
                     _solution
                 )
 
-                // ipc.send('_debug', `DIGEST [ ${digest} ]`)
-
+                /* Calculate (big number) digest. */
                 const digestBN = web3Utils.toBN(digest)
-                const targetBN = web3Utils.toBN(this.minadoTarget)
 
-                // ipc.send('_debug', `DIGEST BIGNUMBER [ ${digestBN} ]`)
-                // ipc.send('_debug', `MINADO TARGET BN [ ${targetBN} ]`)
+                /* Calculate (big number) target. */
+                const targetBN = web3Utils.toBN(this.minadoTarget)
 
                 if (digestBN.lte(targetBN)) {
                     ipc.send('_debug', `Submit mined solution [ ${_solution} ] for challenge [ ${this.minadoChallenge} ] with digest [ ${digest} ]`)
@@ -383,7 +381,11 @@ export default {
                         difficulty: this.minadoDifficulty
                     }
 
+                    /* Send package. */
                     this.ws.send(JSON.stringify(pkg))
+
+                    /* Increment number of shares. */
+                    this.numShares++
                 } else {
                     ipc.send('_debug', `
     Verification Failed!
