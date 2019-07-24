@@ -36,14 +36,14 @@ namespace ministo {
             : AsyncWorker(callback)
             { }
 
-            ~Ministo() {}
+            ~Ministo() { }
 
             // NOTE: This function runs in a thread spawned by NAN.
             void Execute () {
                 if (hybrid_ministo) {
                     hybrid_ministo->run(); // blocking call
                 } else {
-                    SetErrorMessage("{ error: 'no hybrid_ministo!' }");
+                    SetErrorMessage("{ error: 'NO hybrid_ministo available!' }");
                 }
             }
 
@@ -61,26 +61,31 @@ namespace ministo {
                     New<v8::String>(hybrid_ministo->solution()).ToLocalChecked()
                 };
 
+                /* Make the call. */
+                // FIXME: `Call` is now DEPRECATED; must find a replacement.
                 callback->Call(2, argv);
             }
     };
 
     /**
-     * Run an asynchronous function.
+     * Run the MAIN asynchronous process.
      *
      * NOTE: First and only parameter is a callback function
      * receiving the solution when found.
      */
     NAN_METHOD(run) {
+        /* Initialize callback. */
         Callback *callback = new Callback(To<v8::Function>(info[0]).ToLocalChecked());
 
+        /* Start Ministo worker. */
         AsyncQueueWorker(new Ministo(callback));
     }
 
     /**
-     * Stop an asynchronous function.
+     * Stop the MAIN asynchronous process.
      */
     NAN_METHOD(stop) {
+        /* Stop Ministo. */
         hybrid_ministo->stop();
 
         info.GetReturnValue().SetUndefined();
@@ -90,9 +95,12 @@ namespace ministo {
      * Set Hardware Type
      */
     NAN_METHOD(setHardwareType) {
+        /* Retrieve info. */
         MaybeLocal<v8::String> inp = Nan::To<v8::String>(info[0]);
 
+        /* Validate info. */
         if (!inp.IsEmpty()) {
+            /* Set info. */
             hybrid_ministo->setHardwareType(std::string(*Nan::Utf8String(inp.ToLocalChecked())));
         }
 
@@ -103,8 +111,10 @@ namespace ministo {
      * Set Thread Size
      */
     NAN_METHOD(setThreadSize) {
+        /* Retrieve info. */
         MaybeLocal<v8::String> inp = Nan::To<v8::String>(info[0]);
 
+        /* Validate info. */
         if (!inp.IsEmpty()) {
             hybrid_ministo->setThreadSize(std::string(*Nan::Utf8String(inp.ToLocalChecked())));
         }
@@ -116,8 +126,10 @@ namespace ministo {
      * Set Block Size
      */
     NAN_METHOD(setBlockSize) {
+        /* Retrieve info. */
         MaybeLocal<v8::String> inp = Nan::To<v8::String>(info[0]);
 
+        /* Validate info. */
         if (!inp.IsEmpty()) {
             hybrid_ministo->setBlockSize(std::string(*Nan::Utf8String(inp.ToLocalChecked())));
         }
@@ -126,26 +138,30 @@ namespace ministo {
     }
 
     /**
-     * Set Challenge Number
+     * Set Challenge (Number)
      */
-    NAN_METHOD(setChallengeNumber) {
+    NAN_METHOD(setChallenge) {
+        /* Retrieve info. */
         MaybeLocal<v8::String> inp = Nan::To<v8::String>(info[0]);
 
+        /* Validate info. */
         if (!inp.IsEmpty()) {
-            hybrid_ministo->setChallengeNumber(std::string(*Nan::Utf8String(inp.ToLocalChecked())));
+            hybrid_ministo->setChallenge(std::string(*Nan::Utf8String(inp.ToLocalChecked())));
         }
 
         info.GetReturnValue().SetUndefined();
     }
 
     /**
-     * Set Difficulty Target
+     * Set (Difficulty) Target
      */
-    NAN_METHOD(setDifficultyTarget) {
+    NAN_METHOD(setTarget) {
+        /* Retrieve info. */
         MaybeLocal<v8::String> inp = Nan::To<v8::String>(info[0]);
 
+        /* Validate info. */
         if (!inp.IsEmpty()) {
-            hybrid_ministo->setDifficultyTarget(std::string(*Nan::Utf8String(inp.ToLocalChecked())));
+            hybrid_ministo->setTarget(std::string(*Nan::Utf8String(inp.ToLocalChecked())));
         }
 
         info.GetReturnValue().SetUndefined();
@@ -155,8 +171,10 @@ namespace ministo {
      * Set Ministo Address
      */
     NAN_METHOD(setMinterAddress) {
+        /* Retrieve info. */
         MaybeLocal<v8::String> inp = Nan::To<v8::String>(info[0]);
 
+        /* Validate info. */
         if (!inp.IsEmpty()) {
             hybrid_ministo->setMinterAddress(std::string(*Nan::Utf8String(inp.ToLocalChecked())));
         }
@@ -208,13 +226,13 @@ namespace ministo {
         );
 
         Set(target
-            , New<v8::String>("setChallengeNumber").ToLocalChecked()
-            , New<v8::FunctionTemplate>(setChallengeNumber)->GetFunction()
+            , New<v8::String>("setChallenge").ToLocalChecked()
+            , New<v8::FunctionTemplate>(setChallenge)->GetFunction()
         );
 
         Set(target
-            , New<v8::String>("setDifficultyTarget").ToLocalChecked()
-            , New<v8::FunctionTemplate>(setDifficultyTarget)->GetFunction()
+            , New<v8::String>("setTarget").ToLocalChecked()
+            , New<v8::FunctionTemplate>(setTarget)->GetFunction()
         );
 
         Set(target

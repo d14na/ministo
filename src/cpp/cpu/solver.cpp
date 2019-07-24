@@ -3,6 +3,9 @@
 
 #include <assert.h>
 
+/**
+ * Ascii Array
+ */
 static const char* const ascii[] = {
     "00","01","02","03","04","05","06","07","08","09","0a","0b","0c","0d","0e","0f",
     "10","11","12","13","14","15","16","17","18","19","1a","1b","1c","1d","1e","1f",
@@ -22,6 +25,9 @@ static const char* const ascii[] = {
     "f0","f1","f2","f3","f4","f5","f6","f7","f8","f9","fa","fb","fc","fd","fe","ff"
 };
 
+/**
+ * From Ascii
+ */
 static uint8_t fromAscii(uint8_t c)
 {
     if (c >= '0' && c <= '9')
@@ -40,11 +46,17 @@ static uint8_t fromAscii(uint8_t c)
 #endif
 }
 
+/**
+ * Ascii (R)
+ */
 static uint8_t ascii_r(uint8_t a, uint8_t b)
 {
     return fromAscii(a) * 16 + fromAscii(b);
 }
 
+/**
+ * Hex To Bytes
+ */
 static void HexToBytes(std::string const& hex, uint8_t bytes[])
 {
     for (std::string::size_type i = 0, j = 0; i < hex.length(); i += 2, ++j) {
@@ -79,10 +91,13 @@ CPUSolver::CPUSolver() noexcept :
  */
 void CPUSolver::setAddress(std::string const& addr)
 {
+    /* Validate address. */
+    // NOTE: Includes `0x` prefix.
     assert(addr.length() == (ADDRESS_LENGTH * 2 + 2));
 
     hexToBytes(addr, m_address);
 
+    /* Update buffer. */
     updateBuffer();
 }
 
@@ -91,10 +106,12 @@ void CPUSolver::setAddress(std::string const& addr)
  */
 void CPUSolver::setChallenge(std::string const& chal)
 {
+    /* Validate challenge. */
     assert(chal.length() == (UINT256_LENGTH * 2 + 2));
 
     hexToBytes(chal, m_challenge);
 
+    /* Update buffer. */
     updateBuffer();
 }
 
@@ -103,8 +120,10 @@ void CPUSolver::setChallenge(std::string const& chal)
  */
 void CPUSolver::setTarget(std::string const& target)
 {
+    /* Valiate target. */
     assert(target.length() <= (UINT256_LENGTH * 2 + 2));
 
+    // FIXME: What is this for??
     std::string const t(static_cast<std::string::size_type>(UINT256_LENGTH * 2 + 2) - target.length(), '0');
 
     /**
@@ -117,6 +136,7 @@ void CPUSolver::setTarget(std::string const& target)
         hexToBytes("0x" + t + target.substr(2), m_target_tmp);
     }
 
+    /* Set target flag. */
     m_target_ready = true;
 }
 
@@ -145,7 +165,7 @@ void CPUSolver::updateBuffer()
 }
 
 /**
- * Hash
+ * (Keccak) Hash
  */
 void CPUSolver::hash(bytes_t const& solution, bytes_t& digest)
 {
@@ -160,6 +180,7 @@ void CPUSolver::hash(bytes_t const& solution, bytes_t& digest)
 
     std::copy(solution.cbegin(), solution.cend(), m_buffer.begin() + m_challenge.size() + m_address.size());
 
+    /* Perform (keccak) hash. */
     keccak_256(&digest[0], digest.size(), &m_buffer[0], m_buffer.size());
 }
 
@@ -171,7 +192,7 @@ bool CPUSolver::trySolution(bytes_t const& solution)
     /* Initialize digest. */
     bytes_t digest(UINT256_LENGTH);
 
-    /* Perform (keccak) hash. */
+    /* Request (keccak) hash. */
     hash(solution, digest);
 
     if (m_target_ready) {

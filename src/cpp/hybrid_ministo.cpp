@@ -50,22 +50,24 @@ void HybridMinisto::setHardwareType(std::string const& hardwareType)
     cout << (m_hardwareType = hardwareType);
 }
 
-
-void HybridMinisto::setChallengeNumber(std::string const& challengeNumber)
+/**
+ * Set Challenge (Number)
+ */
+void HybridMinisto::setChallenge(std::string const& challenge)
 {
     if (strcmp(m_hardwareType.c_str(), "cuda") == 0) {
-        // cudaSolver.setChallenge(challengeNumber);
+        // cudaSolver.setChallenge(challenge);
     } else {
-        set(&CPUSolver::setChallenge, challengeNumber);
+        set(&CPUSolver::setChallenge, challenge);
     }
 }
 
-void HybridMinisto::setDifficultyTarget(std::string const& difficultyTarget)
+void HybridMinisto::setTarget(std::string const& target)
 {
     if (strcmp(m_hardwareType.c_str(), "cuda") == 0) {
-        // cudaSolver.setTarget(difficultyTarget);
+        // cudaSolver.setTarget(target);
     } else {
-        set(&CPUSolver::setTarget, difficultyTarget);
+        set(&CPUSolver::setTarget, target);
     }
 }
 

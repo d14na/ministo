@@ -25,20 +25,20 @@ const web3utils = require('web3-utils')
 const GPUMiner = require('../build/Release/gpuminer_addon')
 
 const testNonce = 5566
-const difficultyTarget = 5841053340
-const challengeNumber = 2000
+const target = 5841053340
+const challenge = 2000
 const ethAddress = '0x1234'
 
 // send data into the miner
-console.log('diff target', GPUMiner.setDifficultyTarget(difficultyTarget))
-console.log('challenge number', GPUMiner.setChallengeNumber(challengeNumber))
-console.log('eth address', GPUMiner.setEthAddress(ethAddress))
-console.log('random number', GPUMiner.getRandomNumber())
+console.log('Difficulty Target', GPUMiner.setTarget(target))
+console.log('Challenge Number', GPUMiner.setChallenge(challenge))
+console.log('ETH Address', GPUMiner.setEthAddress(ethAddress))
+console.log('Random Number', GPUMiner.getRandomNumber())
 
 console.log(
     'keccak hash should be',
-    web3utils.soliditySha3(testNonce, ethAddress, challengeNumber),
-    GPUMiner.getKeccak256(testNonce, ethAddress, challengeNumber)
+    web3utils.soliditySha3(testNonce, ethAddress, challenge),
+    GPUMiner.getKeccak256(testNonce, ethAddress, challenge)
 )
 
 console.log('hashtest ', GPUMiner.testHashFunction(12345))

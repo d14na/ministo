@@ -23,8 +23,8 @@ class HybridMinisto
         ~HybridMinisto();
 
     public:
-        void setChallengeNumber(std::string const& challengeNumber);
-        void setDifficultyTarget(std::string const& difficultyTarget);
+        void setChallenge(std::string const& challenge);
+        void setTarget(std::string const& target);
         void setMinterAddress(std::string const& minterAddress);
 
         /* Only used if CUDA mining. */

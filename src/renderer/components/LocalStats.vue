@@ -128,7 +128,7 @@ import SystemInformation from './LocalStats/SystemInformation'
 
 export default {
     data: () => ({
-        challengeNumber: null,
+        challenge: null,
         avatarSize: 64,
         showGaia: false,
         items: ['Foo', 'Bar', 'Fizz', 'Buzz']
@@ -142,8 +142,8 @@ export default {
             'email'
         ]),
         challengeDisplay () {
-            if (this.challengeNumber) {
-                return this.challengeNumber
+            if (this.challenge) {
+                return this.challenge
             } else {
                 return 'n/a'
             }
@@ -190,8 +190,8 @@ export default {
         // console.log('STATS', stats)
 
         /* Set challenge number. */
-        if (stats.challengeNumber) {
-            this.challengeNumber = stats.challengeNumber
+        if (stats.challenge) {
+            this.challenge = stats.challenge
         }
     }
 }

@@ -334,11 +334,11 @@ export default {
             /* Set minter's address. */
             HybridMinisto.setMinterAddress(this.minadoAddress)
 
-            /* Set challenge number. */
-            HybridMinisto.setChallengeNumber(this.minadoChallenge)
+            /* Set challenge (number). */
+            HybridMinisto.setChallenge(this.minadoChallenge)
 
-            /* Set target. */
-            HybridMinisto.setDifficultyTarget(this.minadoTarget)
+            /* Set (difficulty) target. */
+            HybridMinisto.setTarget(this.minadoTarget)
         },
 
         /**

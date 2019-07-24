@@ -10,12 +10,15 @@ extern "C" {
 #include <stdint.h>
 #include <stdlib.h>
 
+/* Define SHAKE. */
 #define decshake(bits) \
     int shake##bits(uint8_t*, size_t, const uint8_t*, size_t);
 
+/* Define SHA3. */
 #define decsha3(bits) \
     int sha3_##bits(uint8_t*, size_t, const uint8_t*, size_t);
 
+/* Define Keccak. */
 #define deckeccak(bits) \
     int keccak_##bits(uint8_t*, size_t, const uint8_t*, size_t);
 
