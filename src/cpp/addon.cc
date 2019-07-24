@@ -62,8 +62,7 @@ namespace ministo {
                 };
 
                 /* Make the call. */
-                // FIXME: `Call` is now DEPRECATED; must find a replacement.
-                callback->Call(2, argv);
+                Call(callback->GetFunction(), GetCurrentContext()->Global(), 2, argv);
             }
     };
 

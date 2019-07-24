@@ -11,8 +11,6 @@
 #include <thread>
 #include <string.h>
 
-using namespace std;
-
 /**
  * HybridMinisto
  */

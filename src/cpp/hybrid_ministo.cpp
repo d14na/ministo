@@ -8,8 +8,6 @@
 
 #include "hybrid_ministo.h"
 
-using namespace std;
-
 // FIXME: What is this code doing ? defining a new instance of a class ?
 HybridMinisto::HybridMinisto() noexcept :
     m_solvers(std::thread::hardware_concurrency()),
@@ -27,6 +25,7 @@ HybridMinisto::HybridMinisto() noexcept :
  */
 HybridMinisto::~HybridMinisto()
 {
+    /* Stop trying (if already running). */
     stop();
 
     /**
@@ -43,11 +42,15 @@ HybridMinisto::~HybridMinisto()
     }
 }
 
-/* Set the hardware type to 'cpu' or 'gpu'. */
+/**
+ * Set Hardware Type
+ *
+ * Available options are: 'cpu' or 'gpu'
+ */
 void HybridMinisto::setHardwareType(std::string const& hardwareType)
 {
-    cout << "Setting hardware type: ";
-    cout << (m_hardwareType = hardwareType);
+    std::cout << "Setting hardware type: ";
+    std::cout << (m_hardwareType = hardwareType);
 }
 
 /**
@@ -83,9 +86,9 @@ void HybridMinisto::setMinterAddress(std::string const& minterAddress)
 void HybridMinisto::setBlockSize(std::string const& blocksize)
 {
     if (strcmp(m_hardwareType.c_str(), "cuda") == 0) {
-        cout << "Hybridminer: setting blocksize: " << blocksize << "\n";
+        std::cout << "Setting block size: [ " << blocksize << " ]\n";
 
-        int i = stoi(blocksize);
+        // int i = stoi(blocksize);
 
         // cudaSolver.setBlockSize(i);
     } else {
@@ -96,9 +99,9 @@ void HybridMinisto::setBlockSize(std::string const& blocksize)
 void HybridMinisto::setThreadSize(std::string const& threadsize)
 {
     if (strcmp(m_hardwareType.c_str(), "cuda") == 0) {
-        cout << "Hybridminer: setting threadsize: " << threadsize << "\n";
+        std::cout << "Setting thread size: " << threadsize << "\n";
 
-        int i = stoi(threadsize);
+        // int i = stoi(threadsize);
 
         // cudaSolver.setThreadSize(i);
     } else {
@@ -106,14 +109,17 @@ void HybridMinisto::setThreadSize(std::string const& threadsize)
     }
 }
 
-/* This is a the "main" thread of execution. */
+/**
+ * RUN
+ *
+ * This is a the "main" thread of execution.
+ */
 void HybridMinisto::run()
 {
-    cout << "\n--Starting mining loop hardware type is: " << m_hardwareType.c_str();
+    std::cout << "\n--Starting Ministo.. Hardware type is: " << m_hardwareType.c_str();
 
     if (strcmp(m_hardwareType.c_str(), "cuda") == 0) {
-        cout << "\n--Starting mining loop using CUDA-- \n";
-
+        /* Initialize solution flag. */
         m_bSolutionFound = false;
 
         // fill me in ! run  gpu solver
@@ -124,19 +130,19 @@ void HybridMinisto::run()
 
         // solutionBytes = cudaSolver.findSolution( );
 
-        cout << "\n--GPU returned a soln ! -- \n";
+        std::cout << "\n--GPU returned a solution!! -- \n";
 
         // This sets m_solution and m_bSolutionFound
         // solutionFound(solutionBytes);
 
-        // this sets m_bExit true
+        /* Stop trying. */
+        // NOTE: This sets m_bExit true.
         stop();
     } else {
-        cout << "\n--Starting mining loop using CPU-- \n";
-
+        /* Initialize flags. */
         m_bExit = m_bSolutionFound = false;
 
-        // These are the Solver threads
+        // NOTE: These are the Solver threads.
         for (size_t x = 0; x < m_threads.size(); ++x)
             m_threads[x] = std::thread([&, x] { this->thr_func(this->m_solvers[x]); });
 
@@ -145,15 +151,22 @@ void HybridMinisto::run()
     }
 }
 
+/**
+ * Stop
+ */
 void HybridMinisto::stop()
 {
     if (strcmp(m_hardwareType.c_str(), "cuda") == 0) {
         // cudaSolver.stopFinding();
     }
 
+    /* Set exit flag. */
     m_bExit = true;
 }
 
+/**
+ * Thread Function
+ */
 void HybridMinisto::thr_func(CPUSolver& solver)
 {
     std::random_device r;
@@ -162,47 +175,66 @@ void HybridMinisto::thr_func(CPUSolver& solver)
 
     CPUSolver::bytes_t solution(CPUSolver::UINT256_LENGTH);
 
+    /* Loop! */
     while (!m_bExit) {
         for (size_t i = 0; i < solution.size(); i += 4) {
+            /* Initialize (temp) solution. */
             uint32_t const tmp = dist(gen);
 
+            /* Calculate solution. */
             solution[i]     = static_cast<uint8_t> (tmp & 0x000000ff);
             solution[i + 1] = static_cast<uint8_t>((tmp & 0x0000ff00) >> 8);
             solution[i + 2] = static_cast<uint8_t>((tmp & 0x00ff0000) >> 16);
             solution[i + 3] = static_cast<uint8_t>((tmp & 0xff000000) >> 24);
         }
 
+        /* Try solution. */
         if (solver.trySolution(solution)) {
+            /* Report solution. */
             solutionFound(solution);
 
-            break;
+            break; // Exit for loop.
         }
     }
 }
 
 /**
- * When this function terminates, the "main" thread run() should end
+ * Solution Found
+ *
+ * NOTE: When this function terminates, the "main" thread run() should end
  * and the caller can check the solution().
  */
 void HybridMinisto::solutionFound(CPUSolver::bytes_t const& solution)
 {
     {
         std::lock_guard<std::mutex> g(m_solution_mutex);
+
+        /* Set solution. */
         m_solution = solution;
+
+        /* Set solution flag. */
         m_bSolutionFound = true;
     }
 
+    /* Stop trying. */
     stop();
 }
 
-/* Edit a variable within each of the solvers. */
+/**
+ * (Return) Solution
+ */
+std::string HybridMinisto::solution() const
+{
+    return m_bSolutionFound ? ("0x" + CPUSolver::bytesToString(m_solution)) : std::string();
+}
+
+/**
+ * Set
+ *
+ * Edit a variable within each of the solvers.
+ */
 void HybridMinisto::set(void (CPUSolver::*fn)(std::string const&), std::string const& p)
 {
     for (auto&& i : m_solvers)
         (i.*fn)(p);
-}
-
-std::string HybridMinisto::solution() const
-{
-    return m_bSolutionFound ? ("0x" + CPUSolver::bytesToString(m_solution)) : std::string();
 }

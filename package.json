@@ -1,6 +1,6 @@
 {
   "name": "ministo",
-  "version": "19.7.23",
+  "version": "19.7.24",
   "author": "Decentralization Authority <support@d14na.org>",
   "description": "Find hash. Make money!",
   "license": "MIT",
@@ -59,6 +59,7 @@
   "dependencies": {
     "axios": "0.18.0",
     "electron-store": "4.0.0",
+    "nan": "2.14.0",
     "numeral": "2.0.6",
     "sockjs-client": "1.3.0",
     "vue": "2.5.16",
