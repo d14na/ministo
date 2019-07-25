@@ -16,7 +16,7 @@
                 "src/cpp/addon.cc",
                 "src/cpp/cpu/sha3.c",
                 "src/cpp/cpu/solver.cpp",
-                # "src/cpp/cuda/solver.cu",
+                "src/cpp/cuda/solver.cu",
                 "src/cpp/hybrid_ministo.cpp" # do we place this last in the dependencies?
             ],
             'cflags_cc+': [ '-march=native', '-O3', '-std=c++11' ],
@@ -63,7 +63,7 @@
                         # 'libraries': ['-framework CUDA'],
                         'include_dirs': ['/usr/local/include'],
                         'library_dirs': [
-                            '/usr/local/lib', 
+                            '/usr/local/lib',
                             '/Library/Frameworks'
                         ],
                     }
@@ -93,7 +93,7 @@
                         'libraries': [
                             '-lcuda',
                             '-lcudart',
-                            # '<(module_root_dir)/build/Release/obj/ministo/cudasolver.o'
+                            # '<(module_root_dir)/build/Release/obj/hybrid_ministo/solver.o'
                         ],
                         'library_dirs': [
                             '<(cuda_root)/lib/<(arch)',

@@ -95,7 +95,7 @@ CUDASolver::CUDASolver() noexcept :
  */
 void CUDASolver::setAddress(std::string const& addr)
 {
-    cout << "Setting CUDA Address\n";
+    std::cout << "Setting CUDA Address\n";
 
     assert(addr.length() == (ADDRESS_LENGTH * 2 + 2));
 
@@ -111,7 +111,7 @@ void CUDASolver::setAddress(std::string const& addr)
  */
 void CUDASolver::setChallenge(std::string const& chal)
 {
-    cout << "Setting CUDA Challenge\n";
+    std::cout << "Setting CUDA Challenge\n";
 
     s_challenge = chal;
 
@@ -126,7 +126,7 @@ void CUDASolver::setChallenge(std::string const& chal)
 
 void CUDASolver::setTarget(std::string const& target)
 {
-    cout << "Setting CUDA Target [ " << target << " ]\n";
+    std::cout << "Setting CUDA Target [ " << target << " ]\n";
 
     assert(target.length() <= (UINT256_LENGTH * 2 + 2));
 
@@ -156,7 +156,7 @@ void CUDASolver::setTarget(std::string const& target)
  */
 void CUDASolver::setBlockSize(int size)
 {
-    cout << "CUDASolver: Setting BlockSize [ " << size << " ]\n";
+    std::cout << "CUDASolver: Setting BlockSize [ " << size << " ]\n";
 
     setCudaBlockSize(size);
 }
@@ -166,7 +166,7 @@ void CUDASolver::setBlockSize(int size)
  */
 void CUDASolver::setThreadSize(int size)
 {
-    cout << "CUDASolver: Setting Thread Size [ " << size << " ]\n";
+    std::cout << "CUDASolver: Setting Thread Size [ " << size << " ]\n";
 
     setCudaThreadSize(size);
 }
@@ -252,7 +252,7 @@ void CUDASolver::updateGPULoop()
  */
 void CUDASolver::init()
 {
-    cout << "CUDASolver Initializing.. \n ";
+    std::cout << "CUDASolver Initializing.. \n ";
 
     gpu_init();
 }
@@ -262,7 +262,7 @@ void CUDASolver::init()
  */
 void CUDASolver::stopSolving( )
 {
-    cout << "CUDA has stopped solving for now.\n ";
+    std::cout << "CUDA has stopped solving for now.\n ";
 
     /* Stop solving. */
     stop_solving();
@@ -276,7 +276,7 @@ CUDASolver::bytes_t CUDASolver::findSolution( )
     /* Set update flag. */
     m_updated_gpu_inputs = false;
 
-    cout << "CUDA is trying to find a solution :) \n ";
+    std::cout << "CUDA is trying to find a solution :) \n ";
 
     cudaEventCreate(&start);
 
@@ -337,7 +337,7 @@ CUDASolver::bytes_t CUDASolver::findSolution( )
      for (int i = 52; i < 84; i++) {
          byte_solution[i - 52] = (uint8_t)s_solution[i];
 
-         //cout << (uint8_t)s_solution[i] << "\n";
+         //std::cout << (uint8_t)s_solution[i] << "\n";
      }
 
      cudaEventDestroy(start);
