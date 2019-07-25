@@ -23,36 +23,27 @@ class CUDASolver
 
     public:
         void setAddress(std::string const& addr);
-
         void setChallenge(std::string const& chal);
-
         void setTarget(std::string const& target);
-
-        void setBlockSize(int  size);
-
-        void setThreadSize(int  size);
+        void setBlockSize(int size);
+        void setThreadSize(int size);
 
         void init();
 
     public:
-        bytes_t findSolution( );
+        bytes_t findSolution();
 
-        void stopFinding( );
+        void stopSolving();
 
     public:
         static void hexToBytes(std::string const& hex, bytes_t& bytes);
-
         static std::string bytesToString(bytes_t const& buffer);
-
-        static  std::string hexStr(  char* data, int len);
-
+        static std::string hexStr(char* data, int len);
         static bool lte(bytes_t const& left, bytes_t const& right);
 
         bool requiresRestart();
 
     private:
-        //void updateBuffer();
-
         void updateGPULoop();
 
         void hash(bytes_t const& solution, bytes_t& digest);

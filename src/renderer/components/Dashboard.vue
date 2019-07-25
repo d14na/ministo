@@ -20,11 +20,11 @@
 
                     <p class="mt-3">
                         Open your web browser to:
-                        <br /><strong>https://minado.network/#/m/{{ministoTag}}</strong>
+                        <br /><strong>https://minado.network/#/tag/{{ministoTag}}</strong>
                         <v-icon
                             small
                             class="ml-2 red--text"
-                            @click="open('https://minado.network/#/m/' + ministoTag)"
+                            @click="open('https://minado.network/#/tag/' + ministoTag)"
                         >
                             fa-external-link-alt
                         </v-icon>

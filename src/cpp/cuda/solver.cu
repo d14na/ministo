@@ -101,8 +101,6 @@ void CUDASolver::setAddress(std::string const& addr)
 
     hexToBytes(addr, m_address);
 
-    // updateBuffer();
-
     m_updated_gpu_inputs = true;
 
     updateGPULoop();
@@ -120,8 +118,6 @@ void CUDASolver::setChallenge(std::string const& chal)
     assert(chal.length() == (UINT256_LENGTH * 2 + 2));
 
     hexToBytes(chal, m_challenge);
-
-    //updateBuffer();
 
     m_updated_gpu_inputs = true;
 
@@ -162,7 +158,7 @@ void CUDASolver::setBlockSize(int size)
 {
     cout << "CUDASolver: Setting BlockSize [ " << size << " ]\n";
 
-    setCudaBlocksize(size);
+    setCudaBlockSize(size);
 }
 
 /**
@@ -172,7 +168,7 @@ void CUDASolver::setThreadSize(int size)
 {
     cout << "CUDASolver: Setting Thread Size [ " << size << " ]\n";
 
-    setCudaThreadsize(size);
+    setCudaThreadSize(size);
 }
 
 /**
@@ -207,7 +203,7 @@ void CUDASolver::updateGPULoop()
             s_target = s;
         }
 
-        unsigned char  target_input[64];
+        unsigned char target_input[64];
 
         bytes_t target_bytes(32);
 
@@ -228,7 +224,7 @@ void CUDASolver::updateGPULoop()
         hexToBytes(clean_challenge, challenge_bytes);
 
         for (int i = 0; i < 32; i++) {
-            hash_prefix[i] =(unsigned char) challenge_bytes[i];
+            hash_prefix[i] = (unsigned char) challenge_bytes[i];
         }
 
         for (int i = 0; i < 20; i++) {
@@ -238,7 +234,7 @@ void CUDASolver::updateGPULoop()
         printf("Challenge+Address:\n");
 
         for (int i = 0; i < 52; i++) {
-            printf("%02x",(unsigned char) hash_prefix[i]);
+            printf("%02x", (unsigned char) hash_prefix[i]);
         }
 
         printf("\n/prefix\n");
@@ -248,21 +244,6 @@ void CUDASolver::updateGPULoop()
         update_mining_inputs((const char *)target_input , (const char *)hash_prefix);
     }
 }
-
-// Buffer order: 1-challenge 2-ethAddress 3-solution
-/*
-void CUDASolver::updateBuffer()
-{
-  // The idea is to have a double-buffer system in order not to try
-  //  to acquire a lock on each hash() loop
-  {
-    std::lock_guard<std::mutex> g(m_buffer_mutex);
-    std::copy(m_challenge.cbegin(), m_challenge.cend(), m_buffer_tmp.begin());
-    std::copy(m_address.cbegin(), m_address.cend(), m_buffer_tmp.begin() + m_challenge.size());
-  }
-  m_buffer_ready = true;
-}*/
-
 
 /**
  * Init
@@ -277,13 +258,13 @@ void CUDASolver::init()
 }
 
 /**
- * Stop Finding
+ * Stop Solving
  */
-void CUDASolver::stopFinding( )
+void CUDASolver::stopSolving( )
 {
-    cout << "CUDA has stopped hashing for now.\n ";
+    cout << "CUDA has stopped solving for now.\n ";
 
-    //set h_done[0] = 1
+    /* Stop solving. */
     stop_solving();
 }
 

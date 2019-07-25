@@ -32,7 +32,9 @@ based off of https://github.com/Dunhili/SHA3-gpu-brute-force-cracker/blob/master
 
 void gpu_init();
 void runBenchmarks();
+
 char *read_in_messages();
+
 int gcd(int a, int b);
 
 // updated message the gpu_init() function
@@ -82,22 +84,28 @@ __device__ const int piln[24] = {
     15, 23, 19, 13, 12, 2, 20, 14, 22, 9,  6,  1
 };
 
-
-
-
+/**
+ * Compare Hash
+ *
+ * NOTE: Device ONLY.
+ */
 __device__ int compare_hash(unsigned char *target, unsigned char *hash, int length)
 {
+	int i = 0;
 
-	int i =0;
-	for (i = 0; i < length; i++)
-	{
-		if(hash[i] != target[i])break;
+	for (i = 0; i < length; i++) {
+		if (hash[i] != target[i])
+            break;
 	}
-	return (unsigned char)(hash[i]) < (unsigned char)(target[i]);
 
-
+    return (unsigned char)(hash[i]) < (unsigned char)(target[i]);
 }
 
+/**
+ * Keccak-256
+ *
+ * NOTE: Device ONLY.
+ */
 __device__ void keccak256(uint64_t state[25])
 {
     uint64_t temp, C[5];
@@ -350,6 +358,11 @@ __device__ void keccak256(uint64_t state[25])
     }
 }
 
+/**
+ * Keccak
+ *
+ * NOTE: Device ONLY.
+ */
 __device__ void keccak(const char *message, int message_len, unsigned char *output, int output_len)
 {
     uint64_t state[25];
@@ -363,13 +376,17 @@ __device__ void keccak(const char *message, int message_len, unsigned char *outp
         for (int i = 0; i < rsize_byte; i++) {
             state[i] ^= ((uint64_t *) message)[i];
 		}
+
         keccak256(state);
     }
 
     // last block and padding
     memcpy(temp, message, message_len);
+
     temp[message_len++] = 1;
+
     memset(temp + message_len, 0, rsize - message_len);
+
     temp[rsize - 1] |= 0x80;
 
     for (int i = 0; i < rsize_byte; i++) {
@@ -377,6 +394,7 @@ __device__ void keccak(const char *message, int message_len, unsigned char *outp
 	}
 
     keccak256(state);
+
     memcpy(output, state, output_len);
 }
 
@@ -442,40 +460,47 @@ void stop_solving()
     h_done[0] = 1 ;
 }
 
-
-
-void setCudaBlocksize(int blocksize)
+/**
+ * Set CUDA Block Size
+ */
+void setCudaBlockSize(int blocksize)
 {
    gpu_blocksize = blocksize;
 }
 
-void setCudaThreadsize(int threadsize)
+/**
+ * Set CUDA Thread Size
+ */
+void setCudaThreadSize(int threadsize)
 {
    gpu_threadsize = threadsize;
 }
 
 /**
- * Initializes the global variables by calling the cudaGetDeviceProperties().
+ * GPU Initialization
  */
 void gpu_init()
 {
     cudaDeviceProp device_prop;
+
     int device_count, block_size;
 
     cudaGetDeviceCount(&device_count);
 
-
     if (cudaGetDeviceProperties(&device_prop, 0) != cudaSuccess) {
         printf("Problem getting properties for device, exiting...\n");
+
         exit(EXIT_FAILURE);
     }
 
     number_threads = device_prop.maxThreadsPerBlock;
+
     number_multi_processors = device_prop.multiProcessorCount;
+
     max_threads_per_mp = device_prop.maxThreadsPerMultiProcessor;
 
-
     number_threads = gpu_threadsize;
+
     number_blocks = gpu_blocksize;
 
     clock_speed = (int) (device_prop.memoryClockRate * 1000 * 1000);    // convert from GHz to hertz
@@ -485,151 +510,157 @@ int gcd(int a, int b) {
     return (a == 0) ? b : gcd(b % a, a);
 }
 
-
 int getHashCount( ) {
    return cnt;
 }
+
+/**
+ * Reset Hash Count
+ */
 void resetHashCount( ) {
      cnt = 0;
 }
 
+/**
+ * Update Mining Inputs
+ */
 void update_mining_inputs(const char * challenge_target, const char * hash_prefix) // can accept challenge
 {
+    int *d_done;
+    unsigned char *d_hash;
+    char *device_solution;
 
-  int *d_done;
-  unsigned char *d_hash;
-  char *device_solution;
+    unsigned char * d_challenge_hash;
+    unsigned char * d_hash_prefix;
 
-  unsigned char * d_challenge_hash;
-  unsigned char * d_hash_prefix;
+    cudaMalloc((void**) &d_done, sizeof(int));
+    cudaMalloc((void**) &device_solution, 84); // solution
+    cudaMalloc((void**) &d_challenge_hash, 32);
 
-  cudaMalloc((void**) &d_done, sizeof(int));
-  cudaMalloc((void**) &device_solution, 84); // solution
-  cudaMalloc((void**) &d_challenge_hash, 32);
+    cudaMalloc((void**) &d_hash_prefix, 52);
 
-  cudaMalloc((void**) &d_hash_prefix, 52);
+    cudaMemcpy(d_done, h_done, sizeof(int), cudaMemcpyHostToDevice);
 
-  cudaMemcpy(d_done, h_done, sizeof(int), cudaMemcpyHostToDevice);
-
-  cudaMemcpy(d_challenge_hash, challenge_target, 32, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_hash_prefix, hash_prefix, 52, cudaMemcpyHostToDevice);
-
-
+    cudaMemcpy(d_challenge_hash, challenge_target, 32, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_hash_prefix, hash_prefix, 52, cudaMemcpyHostToDevice);
 }
 
-
-
-
-
-
-
+/**
+ * Find Message
+ */
 unsigned char * find_message(const char * challenge_target, const char * hash_prefix) // can accept challenge
 {
-
-
     h_done[0] = 0;
 
+    int *d_done;
 
+    char *device_solution;
 
-		int *d_done;
-		char *device_solution;
+    unsigned char * d_challenge_hash;
 
-		unsigned char * d_challenge_hash;
-		unsigned char * d_hash_prefix;
+    unsigned char * d_hash_prefix;
 
-		cudaMalloc((void**) &d_done, sizeof(int));
-		cudaMalloc((void**) &device_solution, 84); // solution
-		cudaMalloc((void**) &d_challenge_hash, 32);
+    cudaMalloc((void**) &d_done, sizeof(int));
 
-		cudaMalloc((void**) &d_hash_prefix, 52);
+    cudaMalloc((void**) &device_solution, 84); // solution
 
-		cudaMemcpy(d_done, h_done, sizeof(int), cudaMemcpyHostToDevice);
+    cudaMalloc((void**) &d_challenge_hash, 32);
 
-		cudaMemcpy(d_challenge_hash, challenge_target, 32, cudaMemcpyHostToDevice);
-		cudaMemcpy(d_hash_prefix, hash_prefix, 52, cudaMemcpyHostToDevice);
+    cudaMalloc((void**) &d_hash_prefix, 52);
 
-		cudaThreadSetLimit(cudaLimitMallocHeapSize,2*(84*number_blocks*number_threads + 32*number_blocks*number_threads));
+    cudaMemcpy(d_done, h_done, sizeof(int), cudaMemcpyHostToDevice);
 
-		unsigned int workers = number_blocks * number_threads;
-		char * working_memory_hash;
-	        cudaMallocManaged(&working_memory_hash, workers*32);
-		char * working_memory_nonce;
-	        cudaMallocManaged(&working_memory_nonce, workers*84);
+    cudaMemcpy(d_challenge_hash, challenge_target, 32, cudaMemcpyHostToDevice);
 
+    cudaMemcpy(d_hash_prefix, hash_prefix, 52, cudaMemcpyHostToDevice);
 
-      int now = (int)time(0);
-		  cnt = 0;
+    cudaThreadSetLimit(cudaLimitMallocHeapSize,2*(84*number_blocks*number_threads + 32*number_blocks*number_threads));
 
-				printf("USING NB %d NT %d.\n", number_blocks, number_threads);
+    unsigned int workers = number_blocks * number_threads;
 
-		while (!h_done[0]) {
-			gpu_mine<<<number_blocks, number_threads>>>(working_memory_hash, working_memory_nonce, d_challenge_hash, device_solution, d_done, d_hash_prefix,now,cnt);
-			cudaError_t cudaerr = cudaDeviceSynchronize();
-			if (cudaerr != cudaSuccess) {
-				h_done[0] = 1;
+    char * working_memory_hash;
+        cudaMallocManaged(&working_memory_hash, workers*32);
 
-        cout << cudaerr;
-				printf("kernel launch failed with error \"%s\".\n", cudaGetErrorString(cudaerr));
-        exit(EXIT_FAILURE);
-			}
-        cnt+=number_threads*number_blocks*LOOP_IN_GPU_OPTIMIZATION;
+    char * working_memory_nonce;
+        cudaMallocManaged(&working_memory_nonce, workers*84);
 
+    int now = (int)time(0);
 
+    cnt = 0;
 
-          fprintf(stderr,"Total Hashes: %u\n", cnt );
+    printf("USING NB %d NT %d.\n", number_blocks, number_threads);
 
-			cudaMemcpy(h_done, d_done, sizeof(int), cudaMemcpyDeviceToHost);
-		}
+    while (!h_done[0]) {
+        gpu_mine<<<number_blocks, number_threads>>>(working_memory_hash, working_memory_nonce, d_challenge_hash, device_solution, d_done, d_hash_prefix,now,cnt);
 
-	unsigned	 char * h_message = (unsigned char*)malloc(84);
-		cudaMemcpy(h_message, device_solution, 84, cudaMemcpyDeviceToHost);
+        cudaError_t cudaerr = cudaDeviceSynchronize();
+
+        if (cudaerr != cudaSuccess) {
+            h_done[0] = 1;
+
+            cout << cudaerr;
+
+            printf("kernel launch failed with error \"%s\".\n", cudaGetErrorString(cudaerr));
+
+            exit(EXIT_FAILURE);
+        }
+
+        cnt += number_threads * number_blocks*LOOP_IN_GPU_OPTIMIZATION;
+
+        fprintf(stderr,"Total Hashes: %u\n", cnt);
+
+        cudaMemcpy(h_done, d_done, sizeof(int), cudaMemcpyDeviceToHost);
+    }
+
+    unsigned	 char * h_message = (unsigned char*)malloc(84);
+
+    cudaMemcpy(h_message, device_solution, 84, cudaMemcpyDeviceToHost);
+
     FILE * fp;
+
     fp = fopen ("out.binary", "wb") ;
-    fwrite(h_message , 84, 1 , fp );
-		fclose(fp);
-    fprintf(stderr,"Total hashes: %u\n", cnt);
 
-	/*
-   printf("MIKERS ANSWER IS : ");
-		for (int j = 52; j < 84; j++)
-		{
-		      printf("%02x",(unsigned char) h_message[j]);
-		}
-		printf("\n");
-*/
+    fwrite(h_message , 84, 1 , fp);
 
-		cudaFree(d_done);
-		cudaFree(device_solution);
-		cudaFree(d_challenge_hash);
+    fclose(fp);
 
-		cudaFree(d_hash_prefix);
-		cudaFree(working_memory_hash);
-		cudaFree(working_memory_nonce);
+    fprintf(stderr, "Total hashes: %u\n", cnt);
+
+    cudaFree(d_done);
+    cudaFree(device_solution);
+    cudaFree(d_challenge_hash);
+    cudaFree(d_hash_prefix);
+    cudaFree(working_memory_hash);
+    cudaFree(working_memory_nonce);
+
     return h_message;
 }
 
 /**
- * Main method, initializes the global variables, calls the kernels, and prints the results.
+ * Initialization
+ *
+ * Main method, initializes the global variables, calls the kernels,
+ * and prints the results.
  */
 int init(int argc, char **argv)
 {
-
-
-	char * hash_prefix_filename = argv[1];
+    char * hash_prefix_filename = argv[1];
 	char * challenge = argv[2]; // challenge is the target
 	char  hash_prefix[53];
 
+    FILE *f = fopen(hash_prefix_filename, "r");
 
-        FILE *f = fopen(hash_prefix_filename, "r");
-	fread(&hash_prefix, 52, 1, f);
+    fread(&hash_prefix, 52, 1, f);
 
 	hash_prefix[52]='\0';
-	srand(time(0));
+
+    srand(time(0));
 
 	char  challenge_target[32];
 
-        FILE *fc = fopen(challenge, "r");
-	fread(&challenge_target, 32, 1, fc);
+    FILE *fc = fopen(challenge, "r");
+
+    fread(&challenge_target, 32, 1, fc);
 
 	gpu_init();
 

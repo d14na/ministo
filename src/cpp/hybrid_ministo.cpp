@@ -25,7 +25,7 @@ HybridMinisto::HybridMinisto() noexcept :
  */
 HybridMinisto::~HybridMinisto()
 {
-    /* Stop trying (if already running). */
+    /* Stop solving (if already running). */
     stop();
 
     /**
@@ -135,7 +135,7 @@ void HybridMinisto::run()
         // This sets m_solution and m_bSolutionFound
         // solutionFound(solutionBytes);
 
-        /* Stop trying. */
+        /* Stop solving. */
         // NOTE: This sets m_bExit true.
         stop();
     } else {
@@ -157,7 +157,7 @@ void HybridMinisto::run()
 void HybridMinisto::stop()
 {
     if (strcmp(m_hardwareType.c_str(), "cuda") == 0) {
-        // cudaSolver.stopFinding();
+        // cudaSolver.stopSolving();
     }
 
     /* Set exit flag. */
@@ -216,7 +216,7 @@ void HybridMinisto::solutionFound(CPUSolver::bytes_t const& solution)
         m_bSolutionFound = true;
     }
 
-    /* Stop trying. */
+    /* Stop solving. */
     stop();
 }
 
