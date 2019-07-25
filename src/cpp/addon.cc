@@ -90,6 +90,14 @@ namespace ministo {
         info.GetReturnValue().SetUndefined();
     }
 
+    /*******************************
+     * FOR DEVELOPMENT PURPOSES ONLY
+     ******************************/
+    NAN_METHOD(cudaTest) {
+        hybrid_ministo->cudaTest();
+        info.GetReturnValue().SetUndefined();
+    }
+
     /**
      * Set Hardware Type
      */
@@ -207,6 +215,14 @@ namespace ministo {
         Set(target
             , New<v8::String>("stop").ToLocalChecked()
             , New<v8::FunctionTemplate>(stop)->GetFunction()
+        );
+
+        /*******************************
+         * FOR DEVELOPMENT PURPOSES ONLY
+         ******************************/
+        Set(target
+            , New<v8::String>("cudaTest").ToLocalChecked()
+            , New<v8::FunctionTemplate>(cudaTest)->GetFunction()
         );
 
         Set(target

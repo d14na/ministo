@@ -116,6 +116,8 @@ const MINADO_NETWORK_URL = 'http://asia.minado.network'
 /* Initailize constants. */
 const PRINT_STATS_TIMEOUT = 5000
 
+const UINT256_LENGTH = 32
+
 let GPUMiner = null // eslint-disable-line no-unused-vars
 
 export default {
@@ -206,7 +208,7 @@ export default {
                 if (data && data.action) {
                     const action = data.action
 
-                    console.log('RECEIVED ACTION:', action)
+                    // console.log(`Received Action [ ${action} ]`)
 
                     if (action === 'config') {
                         /* Stop the miner. */
@@ -233,6 +235,11 @@ export default {
 
                     if (action === 'stop_mining') {
                         HybridMinisto.stop()
+                    }
+
+                    if (action === 'cuda_test') {
+                        ipc.send('_debug', `Starting CUDA Test!`)
+                        HybridMinisto.cudaTest()
                     }
                 }
             }
@@ -323,19 +330,26 @@ export default {
         open (link) {
             this.$electron.shell.openExternal(link)
         },
-        toggleGaia () {
-            console.log('Toggle Gaia')
-
-            this.showGaia = !this.showGaia
-        },
         updateHybridMinisto () {
             // ipc.send('_debug', `updateHybridMinisto - ${this.minadoAddress} | ${this.minadoChallenge} | ${this.minadoTarget}`)
 
             /* Set minter's address. */
             HybridMinisto.setMinterAddress(this.minadoAddress)
 
+            /* Validate challenge (number). */
+            // NOTE: `ethers..toHexString()` is truncating `00` from prefix.
+            if (this.minadoChallenge.length !== UINT256_LENGTH * 2 + 2) {
+                throw new Error(`Challenge length is incorrect [ ${this.minadoChallenge} ]`)
+            }
+
             /* Set challenge (number). */
             HybridMinisto.setChallenge(this.minadoChallenge)
+
+            /* Validate (difficulty) target. */
+            // NOTE: `ethers..toHexString()` is truncating `00` from prefix.
+            // if (this.minadoTarget.length !== UINT256_LENGTH * 2 + 2) {
+            //     throw new Error(`Target length is incorrect [ ${this.minadoTarget} ]`)
+            // }
 
             /* Set (difficulty) target. */
             HybridMinisto.setTarget(this.minadoTarget)

@@ -165,6 +165,14 @@ void HybridMinisto::stop()
 }
 
 /**
+ * CUDA Test
+ */
+void HybridMinisto::cudaTest()
+{
+    std::cout << "CUDA Test Complete!";
+}
+
+/**
  * Thread Function
  */
 void HybridMinisto::thr_func(CPUSolver& solver)

@@ -33,6 +33,7 @@ class HybridMinisto
     public:
         void run();
         void stop();
+        void cudaTest();
 
         std::string solution() const;
 
