@@ -2,6 +2,17 @@
 
 import { app, BrowserWindow } from 'electron'
 
+import bugsnag from '@bugsnag/js'
+
+/* Set package.json. */
+const pjson = require('../../package.json')
+
+/* Initialize Bugsnag. */
+bugsnag({
+    apiKey: '031948bd71e3cc6105c07bcff97487c4',
+    appVersion: pjson.version
+})
+
 // const path = require('path')
 
 /**
