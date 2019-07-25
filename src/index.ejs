@@ -9,6 +9,12 @@
         require('module').globalPaths.push('<%= htmlWebpackPlugin.options.nodeModules.replace(/\\/g, '\\\\') %>')
         </script>
     <% } %>
+    <style>
+    /* This is mainly for Windows. */
+    ::-webkit-scrollbar {
+        display: none;
+    }
+    </style>
 </head>
 <body>
     <div id="app"></div>
