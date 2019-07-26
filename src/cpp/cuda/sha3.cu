@@ -28,7 +28,7 @@ based off of https://github.com/Dunhili/SHA3-gpu-brute-force-cracker/blob/master
 #include <stdio.h>
 #include <stdint.h>
 
-#include "solver.h"
+#include "sha3.h"
 
 void gpu_init();
 void runBenchmarks();

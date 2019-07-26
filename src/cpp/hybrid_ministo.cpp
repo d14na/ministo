@@ -8,18 +8,26 @@
 
 #include "hybrid_ministo.h"
 
-// FIXME: What is this code doing ? defining a new instance of a class ?
+
+/**
+ * Hybrid Ministo (Class)
+ */
 HybridMinisto::HybridMinisto() noexcept :
+    /* Vectors */
     m_solvers(std::thread::hardware_concurrency()),
     m_threads(std::thread::hardware_concurrency()),
-    m_solution(CPUSolver::UINT256_LENGTH),
+
+    /* Booleans */
     m_bSolutionFound(false),
-    m_bExit(false)
+    m_bExit(false),
+
+    /* (CPU) Vectors */
+    m_solution(CPUSolver::UINT256_LENGTH)
 { }
 
 
 /**
- * Hybrid Ministo
+ * Hybrid Ministo (Constructor)
  *
  * Supporting: CPU, Nvidia CUDA and OpenCL devices.
  */
@@ -49,8 +57,10 @@ HybridMinisto::~HybridMinisto()
  */
 void HybridMinisto::setHardwareType(std::string const& hardwareType)
 {
-    std::cout << "Setting hardware type: ";
-    std::cout << (m_hardwareType = hardwareType);
+    std::cout << "Setting hardware type [ " << hardwareType << " ]\n";
+
+    /* Set hardware type. */
+    m_hardwareType = hardwareType;
 }
 
 /**
@@ -85,28 +95,20 @@ void HybridMinisto::setMinterAddress(std::string const& minterAddress)
 
 void HybridMinisto::setBlockSize(std::string const& blocksize)
 {
-    if (strcmp(m_hardwareType.c_str(), "cuda") == 0) {
-        std::cout << "Setting block size: [ " << blocksize << " ]\n";
+    std::cout << "Setting block size: [ " << blocksize << " ]\n";
 
-        // int i = stoi(blocksize);
+    // int i = stoi(blocksize);
 
-        // cudaSolver.setBlockSize(i);
-    } else {
-        /* just ignore if cpu mining? */
-    }
+    // cudaSolver.setBlockSize(i);
 }
 
 void HybridMinisto::setThreadSize(std::string const& threadsize)
 {
-    if (strcmp(m_hardwareType.c_str(), "cuda") == 0) {
-        std::cout << "Setting thread size: " << threadsize << "\n";
+    std::cout << "Setting thread size: " << threadsize << "\n";
 
-        // int i = stoi(threadsize);
+    // int i = stoi(threadsize);
 
-        // cudaSolver.setThreadSize(i);
-    } else {
-        /* just ignore if cpu mining? */
-    }
+    // cudaSolver.setThreadSize(i);
 }
 
 /**
@@ -128,7 +130,7 @@ void HybridMinisto::run()
         // this is core dumping - maybe when you dont have a GPU?
         // cudaSolver.init();
 
-        // solutionBytes = cudaSolver.findSolution( );
+        // solutionBytes = cudaSolver.findSolution();
 
         std::cout << "\n--GPU returned a solution!! -- \n";
 
@@ -146,6 +148,7 @@ void HybridMinisto::run()
         for (size_t x = 0; x < m_threads.size(); ++x)
             m_threads[x] = std::thread([&, x] { this->thr_func(this->m_solvers[x]); });
 
+        // ??
         for (auto&& thr: m_threads)
             thr.join();
     }
@@ -201,7 +204,7 @@ void HybridMinisto::thr_func(CPUSolver& solver)
             /* Report solution. */
             solutionFound(solution);
 
-            break; // Exit for loop.
+            break; // Exit while loop.
         }
     }
 }

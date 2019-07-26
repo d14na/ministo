@@ -1,10 +1,10 @@
 #ifndef _CUDASHA3_H_
 #define _CUDASHA3_H_
 
-#include <atomic>
-#include <mutex>
-#include <string>
-#include <vector>
+// #include <atomic>
+// #include <mutex>
+// #include <string>
+// #include <vector>
 
 
 /**
@@ -12,11 +12,11 @@
  */
 class CUDASha3
 {
-    // public:
-
+    /* Classes */
     public:
         CUDASha3() noexcept;
 
+    /* Actions */
     public:
         void gpu_init();
         void setCudaBlockSize(int blocksize);
@@ -27,8 +27,8 @@ class CUDASha3
 
         int gcd(int a, int b);
 
+    /* (Private) Variables. */
     private:
-        // updated message the gpu_init() function
         int clock_speed;
         int number_multi_processors;
         int number_blocks;
@@ -36,10 +36,12 @@ class CUDASha3
         int max_threads_per_mp;
         int num_messages;
 
+        /* Constants. */
         const int digest_size = 256;
         const int digest_size_bytes = digest_size / 8;
-        const size_t str_length = 7;	// change for different sizes
+        const size_t str_length = 7; // change for different sizes
 
+        /* CUDA events. */
         cudaEvent_t start, stop;
 };
 
