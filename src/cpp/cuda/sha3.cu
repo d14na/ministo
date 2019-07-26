@@ -510,37 +510,43 @@ int gcd(int a, int b) {
     return (a == 0) ? b : gcd(b % a, a);
 }
 
-int getHashCount( ) {
+/**
+ * Hash Count
+ */
+int getHashCount() {
    return cnt;
 }
 
 /**
  * Reset Hash Count
  */
-void resetHashCount( ) {
+void resetHashCount() {
      cnt = 0;
 }
 
 /**
  * Update Mining Inputs
+ *
+ * Initializes hashing variables on the device; then copies data
+ * from host memory to the device memory.
  */
 void update_mining_inputs(const char * challenge_target, const char * hash_prefix) // can accept challenge
 {
+    /* Initialize device variables. */
     int *d_done;
     unsigned char *d_hash;
     char *device_solution;
-
     unsigned char * d_challenge_hash;
     unsigned char * d_hash_prefix;
 
+    /* Allocate memory on device. */
     cudaMalloc((void**) &d_done, sizeof(int));
     cudaMalloc((void**) &device_solution, 84); // solution
     cudaMalloc((void**) &d_challenge_hash, 32);
-
     cudaMalloc((void**) &d_hash_prefix, 52);
 
+    /* Copy host memory (data) to the device memory. */
     cudaMemcpy(d_done, h_done, sizeof(int), cudaMemcpyHostToDevice);
-
     cudaMemcpy(d_challenge_hash, challenge_target, 32, cudaMemcpyHostToDevice);
     cudaMemcpy(d_hash_prefix, hash_prefix, 52, cudaMemcpyHostToDevice);
 }
@@ -550,82 +556,110 @@ void update_mining_inputs(const char * challenge_target, const char * hash_prefi
  */
 unsigned char * find_message(const char * challenge_target, const char * hash_prefix) // can accept challenge
 {
+    /* Initialize done. */
     h_done[0] = 0;
 
+    /* Initialize device variables. */
     int *d_done;
-
     char *device_solution;
-
     unsigned char * d_challenge_hash;
-
     unsigned char * d_hash_prefix;
 
+    /* Allocate memory on device. */
     cudaMalloc((void**) &d_done, sizeof(int));
-
     cudaMalloc((void**) &device_solution, 84); // solution
-
     cudaMalloc((void**) &d_challenge_hash, 32);
-
     cudaMalloc((void**) &d_hash_prefix, 52);
 
+    /* Copy host memory (data) to the device memory. */
     cudaMemcpy(d_done, h_done, sizeof(int), cudaMemcpyHostToDevice);
-
     cudaMemcpy(d_challenge_hash, challenge_target, 32, cudaMemcpyHostToDevice);
-
     cudaMemcpy(d_hash_prefix, hash_prefix, 52, cudaMemcpyHostToDevice);
 
-    cudaThreadSetLimit(cudaLimitMallocHeapSize,2*(84*number_blocks*number_threads + 32*number_blocks*number_threads));
+    /* Set CUDA thread limit. */
+    // cudaThreadSetLimit(cudaLimitMallocHeapSize,
+    //     2 * (84 * number_blocks * number_threads + 32 * number_blocks * number_threads));
+    cudaThreadSetLimit(cudaLimitMallocHeapSize,
+        2 * ((84 * number_blocks * number_threads) + (32 * number_blocks * number_threads)));
 
+    /* Initialze (count of) workers. */
     unsigned int workers = number_blocks * number_threads;
 
+    /* Initialize managed memory hash. */
     char * working_memory_hash;
-        cudaMallocManaged(&working_memory_hash, workers*32);
+    cudaMallocManaged(&working_memory_hash, workers * 32);
 
+    /* Initialize managed memory nonce. */
     char * working_memory_nonce;
-        cudaMallocManaged(&working_memory_nonce, workers*84);
+    cudaMallocManaged(&working_memory_nonce, workers * 84);
 
+    /* Initialize (time) now. */
     int now = (int)time(0);
 
-    cnt = 0;
+    /* Reset hash count. */
+    // cnt = 0;
+    resetHashCount()
 
     printf("USING NB %d NT %d.\n", number_blocks, number_threads);
 
     while (!h_done[0]) {
-        gpu_mine<<<number_blocks, number_threads>>>(working_memory_hash, working_memory_nonce, d_challenge_hash, device_solution, d_done, d_hash_prefix,now,cnt);
+        /* Call the kernel (with launch parameters). */
+        gpu_mine<<<number_blocks, number_threads>>>(
+            working_memory_hash,
+            working_memory_nonce,
+            d_challenge_hash,
+            device_solution,
+            d_done,
+            d_hash_prefix,
+            now,
+            cnt
+        );
 
+        /* Perform device synchronization. */
         cudaError_t cudaerr = cudaDeviceSynchronize();
 
+        /* Validate synchronization success. */
         if (cudaerr != cudaSuccess) {
+            /* Set done flag. */
             h_done[0] = 1;
 
-            std::cout << cudaerr;
+            printf("Kernel launch failed with error \"%s\".\n", cudaGetErrorString(cudaerr));
 
-            printf("kernel launch failed with error \"%s\".\n", cudaGetErrorString(cudaerr));
-
+            /* Exit application. */
             exit(EXIT_FAILURE);
         }
 
-        cnt += number_threads * number_blocks*LOOP_IN_GPU_OPTIMIZATION;
+        /* Increment hash count. */
+        cnt += number_threads * number_blocks * LOOP_IN_GPU_OPTIMIZATION;
 
-        fprintf(stderr,"Total Hashes: %u\n", cnt);
+        fprintf(stderr, "Total Hashes: %u\n", cnt);
 
+        /* Copy device `done` value back to host memory. */
         cudaMemcpy(h_done, d_done, sizeof(int), cudaMemcpyDeviceToHost);
     }
 
-    unsigned	 char * h_message = (unsigned char*)malloc(84);
+    /* Initialize (host) message. */
+    unsigned char * h_message = (unsigned char*)malloc(84);
 
+    /* Copy device `solution` value back to host memory. */
     cudaMemcpy(h_message, device_solution, 84, cudaMemcpyDeviceToHost);
 
+    /* Initialize file pointer. */
+    // FIXME: Why are we writing this file??
     FILE * fp;
 
+    /* Open file. */
     fp = fopen ("out.binary", "wb") ;
 
+    /* Write message. */
     fwrite(h_message , 84, 1 , fp);
 
+    /* Close file. */
     fclose(fp);
 
     fprintf(stderr, "Total hashes: %u\n", cnt);
 
+    /* Free memory. */
     cudaFree(d_done);
     cudaFree(device_solution);
     cudaFree(d_challenge_hash);
@@ -633,6 +667,7 @@ unsigned char * find_message(const char * challenge_target, const char * hash_pr
     cudaFree(working_memory_hash);
     cudaFree(working_memory_nonce);
 
+    /* Return message. */
     return h_message;
 }
 
@@ -652,19 +687,22 @@ int init(int argc, char **argv)
 
     fread(&hash_prefix, 52, 1, f);
 
-	hash_prefix[52]='\0';
+	hash_prefix[52] = '\0';
 
     srand(time(0));
 
-	char  challenge_target[32];
+	char challenge_target[32];
 
     FILE *fc = fopen(challenge, "r");
 
     fread(&challenge_target, 32, 1, fc);
 
+    /* Initialize GPU. */
 	gpu_init();
 
+    /* Find a message (solution). */
 	find_message(challenge_target, hash_prefix);
 
+    /* Exit application. */
 	return EXIT_SUCCESS;
 }

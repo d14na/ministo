@@ -32,7 +32,7 @@ void CPUSolver::setAddress(std::string const& addr)
     // NOTE: Includes `0x` prefix.
     assert(addr.length() == (ADDRESS_LENGTH * 2 + 2));
 
-    /* Convert to hex to bytes. */
+    /* Convert from hex to bytes. */
     hexToBytes(addr, m_address);
 
     /* Update buffer. */
@@ -47,7 +47,7 @@ void CPUSolver::setChallenge(std::string const& chal)
     /* Validate challenge. */
     assert(chal.length() == (UINT256_LENGTH * 2 + 2));
 
-    /* Convert to hex to bytes. */
+    /* Convert from hex to bytes. */
     hexToBytes(chal, m_challenge);
 
     /* Update buffer. */
@@ -72,7 +72,7 @@ void CPUSolver::setTarget(std::string const& target)
     {
         std::lock_guard<std::mutex> g(m_target_mutex);
 
-        /* Convert to hex to bytes. */
+        /* Convert from hex to bytes. */
         hexToBytes("0x" + t + target.substr(2), m_target_tmp);
     }
 

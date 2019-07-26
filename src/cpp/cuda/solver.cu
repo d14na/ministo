@@ -7,7 +7,8 @@
 
 #include "solver.h"
 // NOTE: We will need this!
-#include "sha3.h"
+// #include "sha3.h"
+#include "sha3.cu"
 
 #include "../utilities.cpp"
 
@@ -40,7 +41,7 @@ void CUDASolver::setAddress(std::string const& addr)
     /* Validate address length. */
     assert(addr.length() == (ADDRESS_LENGTH * 2 + 2));
 
-    /* Convert to hex to bytes. */
+    /* Convert from hex to bytes. */
     hexToBytes(addr, m_address);
 
     /* Set GPU inputs flag. */
@@ -63,12 +64,13 @@ void CUDASolver::setChallenge(std::string const& chal)
     /* Set challenge string. */
     s_challenge = chal;
 
-    /* Convert to hex to bytes. */
+    /* Convert from hex to bytes. */
     hexToBytes(chal, m_challenge);
 
     /* Set GPU inputs flag. */
     m_updated_gpu_inputs = true;
 
+    /* Update GPU loop. */
     updateGPULoop();
 }
 
@@ -89,7 +91,7 @@ void CUDASolver::setTarget(std::string const& target)
     {
         std::lock_guard<std::mutex> g(m_target_mutex);
 
-        /* Convert to hex to bytes. */
+        /* Convert from hex to bytes. */
         hexToBytes("0x" + t + target.substr(2), m_target_tmp);
     }
 
@@ -99,6 +101,7 @@ void CUDASolver::setTarget(std::string const& target)
     /* Set GPU inputs flag. */
     m_updated_gpu_inputs = true;
 
+    /* Update GPU loop. */
     updateGPULoop();
 }
 
@@ -146,19 +149,25 @@ void CUDASolver::updateGPULoop()
 
         printf("Target input:\n");
 
+        /* Validate target length. */
         if (s_target.length() < 66) {
+            /* Calculate zero padding (if necessary). */
             std::string zeros = std::string(66 - s_target.length(), '0');
 
+            /* Add zero padding (if necessary). */
             std::string s = "0x" + zeros + s_target.substr(2, s_target.length());
 
+            /* Re-assign target (string). */
             s_target = s;
         }
 
+        /* Initialize target input. */
         unsigned char target_input[64];
 
+        /* Initialize target bytes. */
         bytes_t target_bytes(32);
 
-        /* Convert to hex to bytes. */
+        /* Convert from hex to bytes. */
         hexToBytes(s_target, target_bytes);
 
         for (int i = 0; i < 32; i++) {
@@ -173,7 +182,7 @@ void CUDASolver::updateGPULoop()
 
         bytes_t challenge_bytes(32);
 
-        /* Convert to hex to bytes. */
+        /* Convert from hex to bytes. */
         hexToBytes(clean_challenge, challenge_bytes);
 
         for (int i = 0; i < 32; i++) {
@@ -238,6 +247,7 @@ CUDASolver::bytes_t CUDASolver::findSolution( )
 
     printf("Target input:\n");
 
+    /* Validate target length. */
     if (s_target.length() < 66) {
         /* Calculate zero padding (if necessary). */
         std::string zeros = std::string(66 - s_target.length(), '0');
@@ -255,7 +265,7 @@ CUDASolver::bytes_t CUDASolver::findSolution( )
     /* Initialize target bytes. */
     bytes_t target_bytes(32);
 
-    /* Convert to hex to bytes. */
+    /* Convert from hex to bytes. */
     hexToBytes(s_target, target_bytes);
 
     /* Copy target `target_bytes` to `target_input`. */
@@ -274,7 +284,7 @@ CUDASolver::bytes_t CUDASolver::findSolution( )
      /* Initialize challenge bytes. */
      bytes_t challenge_bytes(32);
 
-     /* Convert to hex to bytes. */
+     /* Convert from hex to bytes. */
      hexToBytes(clean_challenge, challenge_bytes);
 
      /* Copy challenge (bytes) to `hash_prefix`. */
