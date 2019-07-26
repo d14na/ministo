@@ -14,7 +14,7 @@
             "target_name": "hybrid_ministo",
             "sources": [
                 "src/cpp/addon.cc",
-                "src/cpp/cpu/sha3.c",
+                "src/cpp/cpu/sha3.c", # needed for `lazy symbol binding` (keccak_256)
                 "src/cpp/cpu/solver.cpp",
                 # "src/cpp/cuda/solver.cu",
                 "src/cpp/hybrid_ministo.cpp" # do we place this last in the dependencies?

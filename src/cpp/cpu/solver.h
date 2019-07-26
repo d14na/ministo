@@ -12,7 +12,9 @@
  */
 class CPUSolver
 {
+    /* Definitions */
     public:
+        /* Initialize vector. */
         typedef std::vector<uint8_t> bytes_t;
 
         /* Initialize constants. */
@@ -22,6 +24,10 @@ class CPUSolver
     /* Classes */
     public:
         CPUSolver() noexcept;
+
+    /* Variables */
+    public:
+        static std::atomic<uint32_t> hashes;
 
     /* Actions */
     public:
@@ -39,26 +45,27 @@ class CPUSolver
         static std::string bytesToString(bytes_t const& buffer);
         static bool lte(bytes_t const& left, bytes_t const& right);
 
-    /* Private Methods */
+    /* (Private) Variables. */
     private:
-        void updateBuffer();
-        void hash(bytes_t const& solution, bytes_t& digest);
-
-    /* Private Variables. */
-    private:
+        /* Vectors */
         bytes_t m_address;
         bytes_t m_challenge;
         bytes_t m_target, m_target_tmp;
         bytes_t m_buffer, m_buffer_tmp;
 
+        /* Mutex */
         std::mutex m_buffer_mutex;
         std::mutex m_target_mutex;
+
+        /* Atomic */
         std::atomic<bool> m_buffer_ready;
         std::atomic<bool> m_target_ready;
 
-    /* Public Variables */
-    public:
-        static std::atomic<uint32_t> hashes;
+    /* (Private) Actions */
+    private:
+        void updateBuffer();
+        void hash(bytes_t const& solution, bytes_t& digest);
+
 };
 
 #endif // !_CPUSOLVER_H_
