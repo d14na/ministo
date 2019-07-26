@@ -14,10 +14,11 @@
             "target_name": "hybrid_ministo",
             "sources": [
                 "src/cpp/addon.cc",
-                "src/cpp/cpu/sha3.c", # needed for `lazy symbol binding` (keccak_256)
+                "src/cpp/cpu/sha3.c",
                 "src/cpp/cpu/solver.cpp",
-                # "src/cpp/cuda/solver.cu",
-                "src/cpp/hybrid_ministo.cpp" # do we place this last in the dependencies?
+                # "src/cpp/cuda/sha3.cu", # This currently causes OSX to fail; but OK on Windows.
+                # "src/cpp/cuda/solver.cu", # This currently causes OSX to fail; but OK on Windows.
+                "src/cpp/hybrid_ministo.cpp"
             ],
             'cflags_cc+': [ '-march=native', '-O3', '-std=c++11' ],
             "include_dirs": ["<!(node -e \"require('nan')\")"],
