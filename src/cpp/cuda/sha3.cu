@@ -514,14 +514,14 @@ int gcd(int a, int b) {
  * Hash Count
  */
 int getHashCount() {
-   return cnt;
+    return cnt;
 }
 
 /**
  * Reset Hash Count
  */
 void resetHashCount() {
-     cnt = 0;
+    cnt = 0;
 }
 
 /**
@@ -598,7 +598,7 @@ unsigned char * find_message(const char * challenge_target, const char * hash_pr
 
     /* Reset hash count. */
     // cnt = 0;
-    resetHashCount()
+    resetHashCount();
 
     printf("USING NB %d NT %d.\n", number_blocks, number_threads);
 

@@ -333,6 +333,10 @@ export default {
         updateHybridMinisto () {
             // ipc.send('_debug', `updateHybridMinisto - ${this.minadoAddress} | ${this.minadoChallenge} | ${this.minadoTarget}`)
 
+            /* Set hardware type. */
+            // NOTE: Allowed values are either `cpu` or `cuda`.
+            HybridMinisto.setHardwareType('cpu');
+
             /* Set minter's address. */
             HybridMinisto.setMinterAddress(this.minadoAddress)
 
