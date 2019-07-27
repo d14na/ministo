@@ -335,7 +335,7 @@ export default {
 
             /* Set hardware type. */
             // NOTE: Allowed values are either `cpu` or `cuda`.
-            HybridMinisto.setHardwareType('cpu');
+            HybridMinisto.setHardwareType('cpu')
 
             /* Set minter's address. */
             HybridMinisto.setMinterAddress(this.minadoAddress)

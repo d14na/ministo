@@ -31,7 +31,7 @@
                             'OS=="win"',
                             {
                                 'rule_name': 'cuda-on-windows',
-                                'message': "\nCompiling CUDA file for Windows...\n",
+                                'message': "\nCompiling a CUDA file for Windows...\n",
                                 'process_outputs_as_sources': 0,
                                 'action': [
                                     'nvcc --std=c++11 -c <(_inputs) -o <(_outputs)'
@@ -39,7 +39,7 @@
                             },
                             {
                                 'rule_name': 'cuda-on-linux',
-                                'message': "\nCompiling CUDA file for Linux...\n",
+                                'message': "\nCompiling a CUDA file for Linux...\n",
                                 'process_outputs_as_sources': 1,
                                 'action': [
                                     'nvcc',

@@ -61,7 +61,7 @@ class HybridMinisto
     /* (CUDA) Variables. */
     // TODO: Make one for GPU??
     private:
-        // CUDASolver cudaSolver;
+        CUDASolver cudaSolver;
         // GPUSolver gpuSolver;
 
     /* (Private) Actions */
