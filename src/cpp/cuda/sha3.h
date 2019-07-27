@@ -1,12 +1,6 @@
 #ifndef _CUDASHA3_H_
 #define _CUDASHA3_H_
 
-// #include <atomic>
-// #include <mutex>
-// #include <string>
-// #include <vector>
-
-
 /**
  * (CUDA) SHA-3 (aka Keccak-256)
  */

@@ -16,7 +16,6 @@
                 "src/cpp/addon.cc",
                 "src/cpp/cpu/sha3.c",
                 "src/cpp/cpu/solver.cpp",
-                # "src/cpp/cuda/sha3.cu", # This currently causes OSX to fail; but OK on Windows.
                 # "src/cpp/cuda/solver.cu", # This currently causes OSX to fail; but OK on Windows.
                 "src/cpp/hybrid_ministo.cpp"
             ],
@@ -31,16 +30,16 @@
                         [
                             'OS=="win"',
                             {
-                                'rule_name': 'cuda on windows',
-                                'message': "compile cuda file on windows",
+                                'rule_name': 'cuda-on-windows',
+                                'message': "\nCompiling CUDA file for Windows...\n",
                                 'process_outputs_as_sources': 0,
                                 'action': [
                                     'nvcc --std=c++11 -c <(_inputs) -o <(_outputs)'
                                 ],
                             },
                             {
-                                'rule_name': 'cuda on linux',
-                                'message': "compile cuda file on linux",
+                                'rule_name': 'cuda-on-linux',
+                                'message': "\nCompiling CUDA file for Linux...\n",
                                 'process_outputs_as_sources': 1,
                                 'action': [
                                     'nvcc',
@@ -94,7 +93,7 @@
                         'libraries': [
                             '-lcuda',
                             '-lcudart',
-                            # '<(module_root_dir)/build/Release/obj/hybrid_ministo/solver.o'
+                            '<(module_root_dir)/build/Release/obj/hybrid_ministo/solver.o'
                         ],
                         'library_dirs': [
                             '<(cuda_root)/lib/<(arch)',

@@ -7,7 +7,6 @@
 
 #include "solver.h"
 // NOTE: We will need this!
-// #include "sha3.h"
 #include "sha3.cu"
 
 #include "../utilities.cpp"
