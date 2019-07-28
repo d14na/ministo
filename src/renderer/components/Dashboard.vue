@@ -236,11 +236,6 @@ export default {
                     if (action === 'stop_mining') {
                         HybridMinisto.stop()
                     }
-
-                    if (action === 'cuda_test') {
-                        ipc.send('_debug', `Starting CUDA Test!`)
-                        HybridMinisto.cudaTest()
-                    }
                 }
             }
 
@@ -446,8 +441,10 @@ export default {
             /* Calucate hashrate. */
             const rate = hashes / PRINT_STATS_TIMEOUT / 1000
 
+            /* Send update for number of hashes. */
             ipc.send('numHashes', numeral(hashes).format('0,0'))
 
+            /* Send update for (formatted) hash rate. */
             ipc.send('hashRate', `${numeral(rate).format('0,0.00')} MH/s`)
         }
     },

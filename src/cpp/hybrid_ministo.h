@@ -25,7 +25,6 @@ class HybridMinisto
     public:
         void run();
         void stop();
-        void cudaTest(); // FOR DEVELOPMENT PURPOSES ONLY
 
         void setChallenge(std::string const& challenge);
         void setTarget(std::string const& target);
