@@ -172,7 +172,7 @@ void CUDASolver::updateGPULoop()
         for (int i = 0; i < 32; i++) {
             target_input[i] = (unsigned char) target_bytes[i];
 
-            printf("%02x",(unsigned char) target_input[i]);
+            printf("%02x", (unsigned char) target_input[i]);
         }
 
         unsigned char hash_prefix[52];
@@ -192,7 +192,7 @@ void CUDASolver::updateGPULoop()
             hash_prefix[i+32] = (unsigned char)m_address[i];
         }
 
-        printf("Challenge+Address:\n");
+        printf("Challenge + Address:\n");
 
         for (int i = 0; i < 52; i++) {
             printf("%02x", (unsigned char) hash_prefix[i]);

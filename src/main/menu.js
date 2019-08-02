@@ -80,7 +80,7 @@ let template = [{
         label: 'Change Ministo Tag',
         click: function (item, focusedWindow) {
             // const focusedWindow = BrowserWindow.getFocusedWindow()
-            focusedWindow.webContents.send('startMining')
+            focusedWindow.webContents.send('changeTag')
         }
     }, {
         label: 'Run Host Analysis',

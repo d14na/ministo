@@ -20,11 +20,11 @@
 
                     <p class="mt-3">
                         Open your web browser to:
-                        <br /><strong>https://minado.network/#/tag/{{ministoTag}}</strong>
+                        <br /><strong>https://minado.network/#/tag/{{tag}}</strong>
                         <v-icon
                             small
                             class="ml-2 red--text"
-                            @click="open('https://minado.network/#/tag/' + ministoTag)"
+                            @click="open('https://minado.network/#/tag/' + tag)"
                         >
                             fa-external-link-alt
                         </v-icon>
@@ -40,7 +40,7 @@
                         <h3>THIS IS YOUR MINISTO TAG</h3>
                     </v-alert>
 
-                    <h1 class="text-xs-center mt-2 ministoTag">{{ministoTag}}</h1>
+                    <h1 class="text-xs-center mt-2 tag">{{tag}}</h1>
 
                     <v-alert
                         :value="true"
@@ -71,7 +71,7 @@
                             </div>
 
                             <div>
-                                # Shares: <span class="red--text">{{numShares}}</span>
+                                Lodes Delivered: <span class="red--text">{{numLodesDisplay}}</span>
                             </div>
                         </div>
                     </div>
@@ -112,6 +112,7 @@ const HybridMinisto = require('../../../build/Release/hybrid_ministo')
 /* Initialize Minado.Network endpoint. */
 // const MINADO_NETWORK_URL = 'ws://asia.minado.network'
 const MINADO_NETWORK_URL = 'http://asia.minado.network'
+// const MINADO_NETWORK_URL = 'http://dev.minado.network'
 
 /* Initailize constants. */
 const PRINT_STATS_TIMEOUT = 5000
@@ -132,10 +133,10 @@ export default {
 
         hashRate: 'n/a',
         numHashes: 0,
-        numShares: 0,
+        numLodes: 0,
 
         avatarSize: 64,
-        ministoTag: '',
+        tag: '',
         showGaia: false,
         pingTimeout: null,
 
@@ -160,6 +161,9 @@ export default {
         emailAddress () {
             return this.email
             // return this.$store.state.Profile.email
+        },
+        numLodesDisplay () {
+            return numeral(this.numLodes).format('0,0')
         }
     },
     methods: {
@@ -168,9 +172,7 @@ export default {
             'updateEmail'
         ]),
 
-        /***********************************************************************
-         * Initialization
-         */
+        /* Initialization. */
         async init () {
             /* Set version. */
             this.version = pjson.version
@@ -181,36 +183,44 @@ export default {
             this.ws = new SockJS(MINADO_NETWORK_URL)
             // console.log('this.ws', this.ws)
 
+            /* Handle 'opened' connection. */
             this.ws.onopen = () => {
-                console.log('open')
+                console.info('Minado.Network connection opened successfully!')
 
-                /* Build package. */
+                /* Build "authorization" package. */
                 const pkg = {
+                    action: 'authorize',
                     client: 'ministo',
-                    tag: this.ministoTag,
+                    tag: this.tag,
                     version: this.version
                 }
 
+                /* Send package. */
                 this.ws.send(JSON.stringify(pkg))
             }
 
             this.ws.onmessage = (_e) => {
                 console.log('Incoming message:', _e.data)
 
+                /* Initialize data. */
                 let data = null
 
                 try {
+                    /* Parse JSON data. */
                     data = JSON.parse(_e.data)
                 } catch (_e) {
                     console.error(_e)
                 }
 
                 if (data && data.action) {
+                    /* Retrieve action. */
                     const action = data.action
 
                     // console.log(`Received Action [ ${action} ]`)
 
-                    if (action === 'config') {
+                    /* Mining notification (from server). */
+                    // NOTE: Broadcast to all miners.
+                    if (action === 'notify') {
                         /* Stop the miner. */
                         HybridMinisto.stop()
 
@@ -226,14 +236,18 @@ export default {
                         }, 1000)
                     }
 
-                    if (action === 'start_mining') {
+                    /* Start mining. */
+                    if (action === 'start_mining' && data.tag === this.tag) {
                         /* Validate running instance. */
                         if (!this.isMining) {
+                            /* Start the miner. */
                             this.mine()
                         }
                     }
 
-                    if (action === 'stop_mining') {
+                    /* Stop mining. */
+                    if (action === 'stop_mining' && data.tag === this.tag) {
+                        /* Stop the miner. */
                         HybridMinisto.stop()
                     }
                 }
@@ -241,11 +255,24 @@ export default {
 
             this.ws.onclose = () => {
                 console.log('Connection closed.')
+
+                /* Try to reconnect after 10 seconds. */
+                setTimeout(() => {
+                    console.log('Trying to re-connect...')
+
+                    /* Re-initialize. */
+                    this.init()
+                }, 10000)
             }
 
             /* Initialize CPU Miner listener. */
             ipc.on('startMining', (_event, _arg) => {
                 this.mine()
+            })
+
+            /* Initialize change tag listener. */
+            ipc.on('changeTag', (_event, _arg) => {
+                this.changeTag()
             })
 
             /* Initialize hash update listener. */
@@ -265,15 +292,6 @@ export default {
                 () => { this.printMiningStats() }, PRINT_STATS_TIMEOUT
             )
 
-            /**
-             * Token Miner Boost
-             */
-
-            /* Validate Nvidia CUDA support. */
-            // if (this.useCUDA) {
-            //     GPUMiner = require('../build/Release/gpuminer')
-            // }
-
             /* Handle (process) exit. */
             process.on('exit', () => {
                 console.log('Process exiting... stopping miner')
@@ -282,6 +300,13 @@ export default {
                 HybridMinisto.stop()
             })
         },
+
+        /* Open web browser hyperlink. */
+        open (link) {
+            this.$electron.shell.openExternal(link)
+        },
+
+        /* Retrieve the current tag. */
         getTag () {
             /* Retrieve tag from storage. */
             let tag = store.get('settings.tag')
@@ -295,41 +320,32 @@ export default {
                 store.set('settings.tag', tag)
             }
 
-            ipc.send('_debug', `Ministo Id [ ${tag} ]`)
+            ipc.send('_debug', `Ministo Tag [ ${tag} ]`)
 
             /* Update instance. */
-            this.ministoTag = tag
+            this.tag = tag
 
             /* Return tag. */
             return tag
         },
 
-        /***********************************************************************
-         * Utilities
-         */
-        _makeTag (_length) {
-            /* Initialize tag. */
-            let tag = ''
+        changeTag () {
+            /* Generate ministo tag. */
+            this.tag = this._makeTag(10)
 
-            /* Initialize ALL "possible" characters. */
-            const possible = '23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz' // base56
+            /* Save tag to store. */
+            store.set('settings.tag', this.tag)
 
-            /* Loop through, `_length` times, generating random characters. */
-            for (let i = 0; i < _length; i++) {
-                tag += possible.charAt(Math.floor(Math.random() * possible.length))
-            }
-
-            /* Return tag. */
-            return tag
+            ipc.send('_debug', `Ministo tag has been changed to [ ${this.tag} ]`)
         },
-        open (link) {
-            this.$electron.shell.openExternal(link)
-        },
+
+        /* Update "native" miner parameters. */
         updateHybridMinisto () {
             // ipc.send('_debug', `updateHybridMinisto - ${this.minadoAddress} | ${this.minadoChallenge} | ${this.minadoTarget}`)
 
             /* Set hardware type. */
             // NOTE: Allowed values are either `cpu` or `cuda`.
+            // FIXME: Auto-detect CUDA GPU compatiblity.
             HybridMinisto.setHardwareType('cpu')
 
             /* Set minter's address. */
@@ -354,9 +370,7 @@ export default {
             HybridMinisto.setTarget(this.minadoTarget)
         },
 
-        /**
-         * Token Miner Boost
-         */
+        /* Hybrid miner. */
         mine () {
             ipc.send('_debug', `Ministo has started mining..`)
 
@@ -384,9 +398,10 @@ export default {
 
                     /* Build package. */
                     const pkg = {
-                        client: 'ministo',
-                        tag: this.ministoTag,
-                        version: this.version,
+                        action: 'submit',
+                        // client: 'ministo',
+                        // tag: this.tag,
+                        // version: this.version,
                         token: '0xf6E9Fc9eB4C20eaE63Cb2d7675F4dD48B008C531', // ZeroGold
                         solution: _solution,
                         digest,
@@ -397,8 +412,9 @@ export default {
                     /* Send package. */
                     this.ws.send(JSON.stringify(pkg))
 
-                    /* Increment number of shares. */
-                    this.numShares++
+                    /* Increment number of lodes. */
+                    // FIXME: Add support for larger lodes.
+                    this.numLodes++
                 } else {
                     ipc.send('_debug', `
     Verification Failed!
@@ -434,6 +450,29 @@ export default {
                 this.isMining = false
             })
         },
+
+        /***********************************************************************
+         * Utilities
+         */
+
+        /* Create a new tag. */
+        _makeTag (_length) {
+            /* Initialize tag. */
+            let tag = ''
+
+            /* Initialize ALL "possible" characters. */
+            const possible = '23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz' // base56
+
+            /* Loop through, `_length` times, generating random characters. */
+            for (let i = 0; i < _length; i++) {
+                tag += possible.charAt(Math.floor(Math.random() * possible.length))
+            }
+
+            /* Return tag. */
+            return tag
+        },
+
+        /* Print/update mining stats. */
         printMiningStats () {
             /* Set hashes. */
             const hashes = HybridMinisto.hashes()
@@ -467,7 +506,7 @@ export default {
 }
 
 .right-side {
-    width: 40vw;
+    width: 45vw;
     display: flex;
     flex-direction: column;
 }
@@ -488,7 +527,7 @@ export default {
     border: 1pt solid #333;
 }
 
-.ministoTag {
+.tag {
     letter-spacing: 5px;
 }
 </style>
