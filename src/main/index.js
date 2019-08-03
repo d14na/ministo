@@ -75,6 +75,11 @@ function createWindow () {
         console.log('DEBUG:', _arg)
     })
 
+    /* Handle developer tools. */
+    ipc.on('openDevTools', function (_event, _arg) {
+        mainWindow.webContents.openDevTools()
+    })
+
     /* Handle commands. */
     ipc.on('cmd', function (_event, _arg) {
         // console.log('HEY! someone sent a CMD', _event, _arg)

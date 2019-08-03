@@ -275,6 +275,12 @@ export default {
                 this.changeTag()
             })
 
+            /* Initialize change tag listener. */
+            // FIXME: Why do we need to call this thru here??
+            ipc.on('openDevTools', (_event, _arg) => {
+                ipc.send('openDevTools')
+            })
+
             /* Initialize hash update listener. */
             ipc.on('updateNumHashes', (_event, _arg) => {
                 this.numHashes = _arg

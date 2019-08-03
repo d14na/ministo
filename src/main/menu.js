@@ -83,18 +83,9 @@ let template = [{
             focusedWindow.webContents.send('changeTag')
         }
     }, {
-        label: 'Run Host Analysis',
+        label: 'Open Developer Tools',
         click: function (item, focusedWindow) {
-            if (focusedWindow) {
-                const options = {
-                    type: 'info',
-                    title: 'Host Analysis',
-                    buttons: ['Ok'],
-                    message: 'Coming soon..'
-                }
-
-                electron.dialog.showMessageBox(focusedWindow, options, function () {})
-            }
+            focusedWindow.webContents.send('openDevTools')
         }
     }]
 }, {
