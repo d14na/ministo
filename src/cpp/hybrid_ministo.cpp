@@ -69,7 +69,7 @@ void HybridMinisto::setHardwareType(std::string const& hardwareType)
 void HybridMinisto::setChallenge(std::string const& challenge)
 {
     if (strcmp(m_hardwareType.c_str(), "cuda") == 0) {
-        cudaSolver.setChallenge(challenge);
+        // cudaSolver.setChallenge(challenge);
     } else {
         set(&CPUSolver::setChallenge, challenge);
     }
@@ -78,7 +78,7 @@ void HybridMinisto::setChallenge(std::string const& challenge)
 void HybridMinisto::setTarget(std::string const& target)
 {
     if (strcmp(m_hardwareType.c_str(), "cuda") == 0) {
-        cudaSolver.setTarget(target);
+        // cudaSolver.setTarget(target);
     } else {
         set(&CPUSolver::setTarget, target);
     }
@@ -87,7 +87,7 @@ void HybridMinisto::setTarget(std::string const& target)
 void HybridMinisto::setMinterAddress(std::string const& minterAddress)
 {
     if (strcmp(m_hardwareType.c_str(), "cuda") == 0) {
-        cudaSolver.setAddress(minterAddress);
+        // cudaSolver.setAddress(minterAddress);
     } else {
         set(&CPUSolver::setAddress, minterAddress);
     }
@@ -97,18 +97,18 @@ void HybridMinisto::setBlockSize(std::string const& blocksize)
 {
     std::cout << "Setting block size: [ " << blocksize << " ]\n";
 
-    int i = stoi(blocksize);
+    // int i = stoi(blocksize);
 
-    cudaSolver.setBlockSize(i);
+    // cudaSolver.setBlockSize(i);
 }
 
 void HybridMinisto::setThreadSize(std::string const& threadsize)
 {
     std::cout << "Setting thread size: " << threadsize << "\n";
 
-    int i = stoi(threadsize);
+    // int i = stoi(threadsize);
 
-    cudaSolver.setThreadSize(i);
+    // cudaSolver.setThreadSize(i);
 }
 
 /**
@@ -125,17 +125,17 @@ void HybridMinisto::run()
         m_bSolutionFound = false;
 
         // fill me in ! run  gpu solver
-        CUDASolver::bytes_t solutionBytes(CUDASolver::UINT256_LENGTH);
+        // CUDASolver::bytes_t solutionBytes(CUDASolver::UINT256_LENGTH);
 
         // this is core dumping - maybe when you dont have a GPU?
-        cudaSolver.init();
+        // cudaSolver.init();
 
-        solutionBytes = cudaSolver.findSolution();
+        // solutionBytes = cudaSolver.findSolution();
 
         std::cout << "\n--GPU returned a solution!! -- \n";
 
         // This sets m_solution and m_bSolutionFound
-        solutionFound(solutionBytes);
+        // solutionFound(solutionBytes);
 
         /* Stop solving. */
         // NOTE: This sets m_bExit true.
@@ -160,7 +160,7 @@ void HybridMinisto::run()
 void HybridMinisto::stop()
 {
     if (strcmp(m_hardwareType.c_str(), "cuda") == 0) {
-        cudaSolver.stopSolving();
+        // cudaSolver.stopSolving();
     }
 
     /* Set exit flag. */

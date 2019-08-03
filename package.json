@@ -58,6 +58,7 @@
     },
     "dependencies": {
         "@bugsnag/js": "6.3.2",
+        "@bugsnag/plugin-vue": "6.3.0",
         "axios": "0.18.0",
         "electron-store": "4.0.0",
         "nan": "2.14.0",

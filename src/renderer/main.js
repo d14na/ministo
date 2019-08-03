@@ -1,6 +1,9 @@
-import axios from 'axios'
+/* Import Vue. */
 import Vue from 'vue'
 import Vuetify from 'vuetify'
+
+/* Import Axios. */
+import axios from 'axios'
 
 /* Import Vuetify css. */
 import 'vuetify/dist/vuetify.min.css'
@@ -10,6 +13,7 @@ import 'vuetify/dist/vuetify.min.css'
 // import '@mdi/font/css/materialdesignicons.css'
 import '@fortawesome/fontawesome-free/css/all.css'
 
+/* Import local libraries. */
 import App from './App'
 import router from './router'
 import store from './store'

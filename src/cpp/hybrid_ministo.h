@@ -58,10 +58,8 @@ class HybridMinisto
         CPUSolver::bytes_t m_solution;
 
     /* (CUDA) Variables. */
-    // TODO: Make one for GPU??
     private:
-        CUDASolver cudaSolver;
-        // GPUSolver gpuSolver;
+        // CUDASolver cudaSolver;
 
     /* (Private) Actions */
     private:

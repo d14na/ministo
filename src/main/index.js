@@ -1,17 +1,26 @@
 'use strict'
 
+/* Import Electron. */
 import { app, BrowserWindow } from 'electron'
 
+/* Import Vue. */
+import Vue from 'vue'
+
+/* Import Bugsnag. */
 import bugsnag from '@bugsnag/js'
+import bugsnagVue from '@bugsnag/plugin-vue'
 
 /* Set package.json. */
 const pjson = require('../../package.json')
 
 /* Initialize Bugsnag. */
-bugsnag({
+const bugsnagClient = bugsnag({
     apiKey: '031948bd71e3cc6105c07bcff97487c4',
     appVersion: pjson.version
 })
+
+/* Initialize Bugsnag Vue. */
+bugsnagClient.use(bugsnagVue, Vue)
 
 // const path = require('path')
 
